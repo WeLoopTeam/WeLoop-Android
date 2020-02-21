@@ -15,12 +15,21 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+   <!-- <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="20dp"
-        app:srcCompat="@android:drawable/ic_dialog_email" />
+        android:backgroundTint="@android:color/black"
+        app:srcCompat="@android:drawable/ic_dialog_email" />-->
+
+    <com.weloop.weloop.FloatingWidget
+        android:background="@android:color/black"
+        android:id="@+id/fab"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="20dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
