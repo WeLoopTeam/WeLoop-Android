@@ -1,4 +1,4 @@
-package com.weloop.weloop
+package com.weloop.weloop.model
 
 /* Created by *-----* Alexandre Thauvin *-----* */
 
