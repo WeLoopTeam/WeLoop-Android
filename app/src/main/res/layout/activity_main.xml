@@ -2,27 +2,62 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:background="#3C4146"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:background="@android:color/black"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <com.weloop.weloop.WeLoop
-        android:layout_margin="20dp"
-        android:visibility="gone"
-        android:id="@+id/webview"
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/rlMain"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent">
 
-   <!-- <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="20dp"
-        android:backgroundTint="@android:color/black"
-        app:srcCompat="@android:drawable/ic_dialog_email" />-->
+        <com.weloop.weloop.WeLoopWebView
+            android:id="@+id/webview"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <com.google.android.material.tabs.TabLayout
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginStart="10dp"
+            app:tabTextColor="@android:color/white"
+            android:id="@+id/tabs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.tabs.TabItem
+                android:id="@+id/tab_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="manual"/>
+            <com.google.android.material.tabs.TabItem
+                android:id="@+id/tab_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="shake"/>
+            <com.google.android.material.tabs.TabItem
+                android:id="@+id/tab_3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="fab"/>
+
+        </com.google.android.material.tabs.TabLayout>
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/tvManualInvocation"
+            android:layout_marginTop="50dp"
+            android:textColor="@android:color/white"
+            android:textSize="30sp"
+            android:layout_gravity="center_horizontal"
+            android:text="manual invocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
 
     <com.weloop.weloop.FloatingWidget
         android:background="@android:color/black"
