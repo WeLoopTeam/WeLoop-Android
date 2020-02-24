@@ -22,7 +22,7 @@ import io.reactivex.schedulers.Schedulers
 
 /* Created by *-----* Alexandre Thauvin *-----* */
 
-class WeLoopWebView : WebView {
+class WeLoop : WebView {
     private var currentInvocationMethod = 0
     private var apiKey: String = ""
     private lateinit var floatingWidget: FloatingWidget
