@@ -1,17 +1,16 @@
 package com.weloop.library
 
-import android.hardware.SensorEventListener
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import com.google.android.material.tabs.TabLayout
 import com.weloop.weloop.FloatingWidget
-import com.weloop.weloop.WeLoopWebView
+import com.weloop.weloop.WeLoop
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var weLoopWebView: WeLoopWebView
+    private lateinit var weLoopWebView: WeLoop
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,9 +35,9 @@ class MainActivity : AppCompatActivity() {
 
             override fun onTabSelected(p0: TabLayout.Tab?) {
                 when (p0!!.position) {
-                    0 -> weLoopWebView.setInvocationMethod(WeLoopWebView.MANUAL)
-                    1 -> weLoopWebView.setInvocationMethod(WeLoopWebView.SHAKE_GESTURE)
-                    2 -> weLoopWebView.setInvocationMethod(WeLoopWebView.FAB)
+                    0 -> weLoopWebView.setInvocationMethod(WeLoop.MANUAL)
+                    1 -> weLoopWebView.setInvocationMethod(WeLoop.SHAKE_GESTURE)
+                    2 -> weLoopWebView.setInvocationMethod(WeLoop.FAB)
                 }
             }
 
