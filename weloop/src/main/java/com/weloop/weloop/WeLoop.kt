@@ -2,7 +2,9 @@ package com.weloop.weloop
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.util.AttributeSet
@@ -10,10 +12,13 @@ import android.view.Gravity
 import android.view.View
 import android.webkit.WebView
 import android.widget.LinearLayout
-import android.widget.Toast
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.github.tbouron.shakedetector.library.ShakeDetector
 import com.github.tbouron.shakedetector.library.ShakeDetector.OnShakeListener
+import com.weloop.weloop.model.User
 import com.weloop.weloop.network.ApiServiceImp
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -41,17 +46,17 @@ class WeLoop : WebView {
 
 
     fun initialize(apiKey: String, floatingWidget: FloatingWidget) {
-        ShakeDetector.create(context, OnShakeListener{
+        this.floatingWidget = floatingWidget
+        this.apiKey = apiKey
+        ShakeDetector.create(context, OnShakeListener {
             invoke()
         })
 
-        this.floatingWidget = floatingWidget
         this.floatingWidget.setOnClickListener {
             invoke()
         }
 
         loadUrl(URL + apiKey)
-        this.apiKey = apiKey
         disposable.add(ApiServiceImp.getWidgetPreferences(this.apiKey)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -59,16 +64,28 @@ class WeLoop : WebView {
 
             }
             .subscribe {
-                if (it.widgetIcon != null) {
-
-                } else {
-                    this.floatingWidget.backgroundTintList = ColorStateList.valueOf(
-                        Color.rgb(
-                            it.widgetPrimaryColor!!["r"]!!.toInt(),
-                            it.widgetPrimaryColor!!["g"]!!.toInt(),
-                            it.widgetPrimaryColor!!["b"]!!.toInt()
-                        )
+                this.floatingWidget.backgroundTintList = ColorStateList.valueOf(
+                    Color.rgb(
+                        it.widgetPrimaryColor!!["r"]!!.toInt(),
+                        it.widgetPrimaryColor!!["g"]!!.toInt(),
+                        it.widgetPrimaryColor!!["b"]!!.toInt()
                     )
+                )
+                if (it.widgetIcon != null) {
+                    Glide.with(context)
+                        .asBitmap()
+                        .load(it.widgetIcon)
+                        .into(object : CustomTarget<Bitmap>(){
+                            override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                                floatingWidget.setImageBitmap(resource)
+                            }
+                            override fun onLoadCleared(placeholder: Drawable?) {
+                                // this is called when imageView is cleared on lifecycle call or for
+                                // some other reason.
+                                // if you are referencing the bitmap somewhere else too other than this imageView
+                                // clear it here as you can no longer have the bitmap
+                            }
+                        })
                 }
                 if (it.widgetPosition.equals("right", ignoreCase = true)) {
                     val params = CoordinatorLayout.LayoutParams(
@@ -125,15 +142,15 @@ class WeLoop : WebView {
         }
     }
 
-    fun resumeWeLoop(){
+    fun resumeWeLoop() {
         ShakeDetector.start()
     }
 
-    fun stopWeLoop(){
+    fun stopWeLoop() {
         ShakeDetector.stop()
     }
 
-    fun destroyWeLoop(){
+    fun destroyWeLoop() {
         ShakeDetector.destroy()
     }
 
