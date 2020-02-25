@@ -6,6 +6,7 @@ import android.view.View
 import com.google.android.material.tabs.TabLayout
 import com.weloop.weloop.FloatingWidget
 import com.weloop.weloop.WeLoop
+import com.weloop.weloop.model.User
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -17,13 +18,14 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         weLoopWebView = findViewById(R.id.webview)
         weLoopWebView.initialize("742382b0-531e-11ea-8733-0fb1656485aa", findViewById<FloatingWidget>(R.id.fab))
+        weLoopWebView.authenticateUser(User(id = "3", email = "toto@gmail.com", firstName = "tata", lastName = "titi"))
         initListeners()
         tabs.getTabAt(2)!!.select()
     }
 
     private fun initListeners(){
         tvManualInvocation.setOnClickListener {
-
+            weLoopWebView.resumeWeLoop()
             if (tabs.selectedTabPosition == 0) {
                 weLoopWebView.invoke()
             }
