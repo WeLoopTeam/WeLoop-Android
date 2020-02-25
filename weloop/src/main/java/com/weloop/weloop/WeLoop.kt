@@ -1,15 +1,20 @@
 package com.weloop.weloop
 
 import android.content.Context
+import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.Drawable
+import android.net.Uri
+import android.os.Environment
 import android.util.AttributeSet
 import android.util.Base64
 import android.view.Gravity
 import android.view.View
+import android.view.Window
 import android.webkit.WebView
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -25,6 +30,9 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import org.json.JSONObject
+import java.io.File
+import java.io.FileOutputStream
+import java.util.*
 import javax.crypto.*
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.PBEKeySpec
@@ -40,6 +48,8 @@ class WeLoop : WebView {
     private var webViewInterface = WebAppInterface()
     private val disposable = CompositeDisposable()
     private lateinit var token: String
+    private lateinit var window: Window
+    private lateinit var toto: ImageView
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
@@ -50,9 +60,10 @@ class WeLoop : WebView {
         settings.javaScriptEnabled = true
     }
 
-    fun initialize(apiKey: String, floatingWidget: FloatingWidget) {
+    fun initialize(apiKey: String, floatingWidget: FloatingWidget, window: Window, t: ImageView) {
+        this.toto =t
         this.floatingWidget = floatingWidget
-        this.floatingWidget.count = 3
+        this.window = window
         this.apiKey = apiKey
         initWebAppListener()
         addJavascriptInterface(webViewInterface, "Android")
@@ -61,15 +72,16 @@ class WeLoop : WebView {
         })
 
         this.floatingWidget.setOnClickListener {
-            invoke()
+            takeScreenshot()
+            //invoke()
         }
 
         loadUrl(URL + apiKey)
         initWidgetPreferences()
     }
 
-    private fun initWebAppListener(){
-        webViewInterface.addListener(object : WebAppInterface.WebAppListener{
+    private fun initWebAppListener() {
+        webViewInterface.addListener(object : WebAppInterface.WebAppListener {
             override fun closePanel() {
                 visibility = View.GONE
             }
@@ -91,7 +103,25 @@ class WeLoop : WebView {
         })
     }
 
-    private fun initWidgetPreferences(){
+    fun takeScreenshot(){
+        val now = Date()
+        android.text.format.DateFormat.format("yyyy-MM-dd_hh:mm:ss", now);
+        try {
+            // image naming and path  to include sd card  appending name you choose for file
+            val mPath = Environment.getExternalStorageDirectory().toString() + "/" + now + ".jpg";
+
+            // create bitmap screen capture
+            val v1 = window.decorView.rootView
+            v1.setDrawingCacheEnabled(true)
+            val bitmap = Bitmap.createBitmap(v1.getDrawingCache());
+            toto.setImageBitmap(bitmap)
+
+        } catch (e: Throwable) {
+            e.printStackTrace();
+        }
+    }
+
+    private fun initWidgetPreferences() {
         disposable.add(ApiServiceImp.getWidgetPreferences(this.apiKey)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -191,38 +221,36 @@ class WeLoop : WebView {
         }
     }
 
-    private fun encrypt(strToEncrypt: String, secretKey: String): String {
+    private fun encrypt(strToEncrypt: String, secret: String): String {
         val iv = byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-        val ivspec = IvParameterSpec(iv)
+        val ivSpec = IvParameterSpec(iv)
 
         val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
-        val spec = PBEKeySpec(secretKey.toCharArray(), apiKey.toByteArray(), 65536, 256)
+        val spec = PBEKeySpec(secret.toCharArray(), apiKey.toByteArray(), 65536, 256)
         val tmp = factory.generateSecret(spec)
-        val secretKey = SecretKeySpec(tmp.getEncoded(), "AES")
+        val secretKey = SecretKeySpec(tmp.encoded, "AES")
 
-        val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivspec)
+        val cipher = Cipher.getInstance(TRANSFORMATION)
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivSpec)
         return Base64.encodeToString(cipher.doFinal(strToEncrypt.toByteArray()), 0)
     }
 
-    private fun decrypt(strToDecrypt: String, secretKey: String): String {
+    private fun decrypt(strToDecrypt: String, secret: String): String {
         val iv = byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-        val ivspec = IvParameterSpec(iv)
+        val ivSpec = IvParameterSpec(iv)
 
-        val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
-        val spec = PBEKeySpec(secretKey.toCharArray(), apiKey.toByteArray(), 65536, 256)
+        val factory = SecretKeyFactory.getInstance(TRANSFORMATION)
+        val spec = PBEKeySpec(secret.toCharArray(), apiKey.toByteArray(), 65536, 256)
         val tmp = factory.generateSecret(spec)
-        val secretKey = SecretKeySpec(tmp.getEncoded(), "AES")
+        val secretKey = SecretKeySpec(tmp.encoded, "AES")
 
         val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, ivspec)
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec)
         return String(cipher.doFinal(Base64.decode(strToDecrypt, 0)))
     }
 
     fun resumeWeLoop() {
         ShakeDetector.start()
-        Toast.makeText(context, decrypt(token, apiKey), Toast.LENGTH_LONG)
-            .show()
     }
 
     fun stopWeLoop() {
@@ -242,7 +270,6 @@ class WeLoop : WebView {
         const val SHAKE_GESTURE = 1
         const val MANUAL = 2
         private const val TRANSFORMATION = "AES/CBC/PKCS5Padding"
-        private const val SECRET_KEY = "SECRET_KEY"
         private const val URL = "https://staging-widget.30kg-rice.cooking/home?appGuid="
     }
 }
