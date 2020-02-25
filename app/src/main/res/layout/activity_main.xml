@@ -59,6 +59,7 @@
     </LinearLayout>
 
     <com.weloop.weloop.FloatingWidget
+        app:badgeBackgroundColor="@color/defaultColorBadge"
         android:background="@android:color/black"
         android:id="@+id/fab"
         android:layout_gravity="bottom|start"
