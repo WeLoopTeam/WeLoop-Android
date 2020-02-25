@@ -1,17 +1,18 @@
 package com.weloop.weloop
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.Drawable
-import android.hardware.Sensor
-import android.hardware.SensorManager
 import android.util.AttributeSet
+import android.util.Base64
 import android.view.Gravity
 import android.view.View
 import android.webkit.WebView
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
@@ -23,6 +24,10 @@ import com.weloop.weloop.network.ApiServiceImp
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
+import javax.crypto.*
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.PBEKeySpec
+import javax.crypto.spec.SecretKeySpec
 
 
 /* Created by *-----* Alexandre Thauvin *-----* */
@@ -31,9 +36,8 @@ class WeLoop : WebView {
     private var currentInvocationMethod = 0
     private var apiKey: String = ""
     private lateinit var floatingWidget: FloatingWidget
-    private lateinit var sensorMgr: SensorManager
-    private lateinit var sensor: Sensor
     private val disposable = CompositeDisposable()
+    private lateinit var token: String
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
@@ -43,7 +47,6 @@ class WeLoop : WebView {
         settings.javaScriptCanOpenWindowsAutomatically = true
         settings.javaScriptEnabled = true
     }
-
 
     fun initialize(apiKey: String, floatingWidget: FloatingWidget) {
         this.floatingWidget = floatingWidget
@@ -64,21 +67,30 @@ class WeLoop : WebView {
 
             }
             .subscribe {
-                this.floatingWidget.backgroundTintList = ColorStateList.valueOf(
-                    Color.rgb(
-                        it.widgetPrimaryColor!!["r"]!!.toInt(),
-                        it.widgetPrimaryColor!!["g"]!!.toInt(),
-                        it.widgetPrimaryColor!!["b"]!!.toInt()
+                if (it.widgetPrimaryColor != null) {
+                    this.floatingWidget.backgroundTintList = ColorStateList.valueOf(
+                        Color.rgb(
+                            it.widgetPrimaryColor!!["r"]!!.toInt(),
+                            it.widgetPrimaryColor!!["g"]!!.toInt(),
+                            it.widgetPrimaryColor!!["b"]!!.toInt()
+                        )
                     )
-                )
+                } else {
+                    this.floatingWidget.backgroundTintList =
+                        ColorStateList.valueOf(context.getColor(R.color.defaultColorWidget))
+                }
                 if (it.widgetIcon != null) {
                     Glide.with(context)
                         .asBitmap()
                         .load(it.widgetIcon)
-                        .into(object : CustomTarget<Bitmap>(){
-                            override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                        .into(object : CustomTarget<Bitmap>() {
+                            override fun onResourceReady(
+                                resource: Bitmap,
+                                transition: Transition<in Bitmap>?
+                            ) {
                                 floatingWidget.setImageBitmap(resource)
                             }
+
                             override fun onLoadCleared(placeholder: Drawable?) {
                                 // this is called when imageView is cleared on lifecycle call or for
                                 // some other reason.
@@ -111,7 +123,12 @@ class WeLoop : WebView {
     }
 
     fun authenticateUser(user: User) {
-
+        if (android.util.Patterns.EMAIL_ADDRESS.matcher(user.email).matches()) {
+            val str = user.email + "|" + user.firstName + "|" + user.lastName + "|" + user.id
+            token = encrypt(str, apiKey)
+        } else {
+            Toast.makeText(context, "email incorrecte", Toast.LENGTH_LONG).show()
+        }
     }
 
     fun setInvocationMethod(invocationMethod: Int) {
@@ -142,8 +159,38 @@ class WeLoop : WebView {
         }
     }
 
+    private fun encrypt(strToEncrypt: String, secretKey: String): String {
+        val iv = byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        val ivspec = IvParameterSpec(iv)
+
+        val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+        val spec = PBEKeySpec(secretKey.toCharArray(), apiKey.toByteArray(), 65536, 256)
+        val tmp = factory.generateSecret(spec)
+        val secretKey = SecretKeySpec(tmp.getEncoded(), "AES")
+
+        val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivspec)
+        return Base64.encodeToString(cipher.doFinal(strToEncrypt.toByteArray()), 0)
+    }
+
+    private fun decrypt(strToDecrypt: String, secretKey: String): String {
+        val iv = byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        val ivspec = IvParameterSpec(iv)
+
+        val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+        val spec = PBEKeySpec(secretKey.toCharArray(), apiKey.toByteArray(), 65536, 256)
+        val tmp = factory.generateSecret(spec)
+        val secretKey = SecretKeySpec(tmp.getEncoded(), "AES")
+
+        val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, ivspec)
+        return String(cipher.doFinal(Base64.decode(strToDecrypt, 0)))
+    }
+
     fun resumeWeLoop() {
         ShakeDetector.start()
+        Toast.makeText(context, decrypt(token, apiKey), Toast.LENGTH_LONG)
+            .show()
     }
 
     fun stopWeLoop() {
@@ -162,6 +209,8 @@ class WeLoop : WebView {
         const val FAB = 0
         const val SHAKE_GESTURE = 1
         const val MANUAL = 2
+        private const val TRANSFORMATION = "AES/CBC/PKCS5Padding"
+        private const val SECRET_KEY = "SECRET_KEY"
         private const val URL = "https://staging-widget.30kg-rice.cooking/home?appGuid="
     }
 }
