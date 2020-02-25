@@ -1,7 +1,6 @@
 package com.weloop.weloop
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -20,10 +19,12 @@ import com.bumptech.glide.request.transition.Transition
 import com.github.tbouron.shakedetector.library.ShakeDetector
 import com.github.tbouron.shakedetector.library.ShakeDetector.OnShakeListener
 import com.weloop.weloop.model.User
+import com.weloop.weloop.model.WebAppInterface
 import com.weloop.weloop.network.ApiServiceImp
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
+import org.json.JSONObject
 import javax.crypto.*
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.PBEKeySpec
@@ -36,6 +37,7 @@ class WeLoop : WebView {
     private var currentInvocationMethod = 0
     private var apiKey: String = ""
     private lateinit var floatingWidget: FloatingWidget
+    private var webViewInterface = WebAppInterface()
     private val disposable = CompositeDisposable()
     private lateinit var token: String
 
@@ -50,7 +52,10 @@ class WeLoop : WebView {
 
     fun initialize(apiKey: String, floatingWidget: FloatingWidget) {
         this.floatingWidget = floatingWidget
+        this.floatingWidget.count = 3
         this.apiKey = apiKey
+        initWebAppListener()
+        addJavascriptInterface(webViewInterface, "Android")
         ShakeDetector.create(context, OnShakeListener {
             invoke()
         })
@@ -60,6 +65,33 @@ class WeLoop : WebView {
         }
 
         loadUrl(URL + apiKey)
+        initWidgetPreferences()
+    }
+
+    private fun initWebAppListener(){
+        webViewInterface.addListener(object : WebAppInterface.WebAppListener{
+            override fun closePanel() {
+                visibility = View.GONE
+            }
+
+            override fun getCapture(): String {
+                return ""
+            }
+
+            override fun getCurrentUser(): String {
+                val map = mutableMapOf<String, String>()
+                map["token"] = token
+                map["apiKey"] = apiKey
+                return JSONObject(map.toMap()).toString()
+            }
+
+            override fun setNotificationCount(number: Int) {
+                floatingWidget.count = number
+            }
+        })
+    }
+
+    private fun initWidgetPreferences(){
         disposable.add(ApiServiceImp.getWidgetPreferences(this.apiKey)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
