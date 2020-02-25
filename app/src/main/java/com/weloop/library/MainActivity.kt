@@ -1,13 +1,19 @@
 package com.weloop.library
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import com.google.android.material.tabs.TabLayout
 import com.weloop.weloop.FloatingWidget
 import com.weloop.weloop.WeLoop
 import com.weloop.weloop.model.User
 import kotlinx.android.synthetic.main.activity_main.*
+import java.io.File
 
 class MainActivity : AppCompatActivity() {
 
@@ -16,16 +22,16 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        weLoopWebView = findViewById(R.id.webview)
-        weLoopWebView.initialize("742382b0-531e-11ea-8733-0fb1656485aa", findViewById<FloatingWidget>(R.id.fab))
+        weLoopWebView = webview
+        weLoopWebView.initialize("742382b0-531e-11ea-8733-0fb1656485aa", fab, window, toto)
         weLoopWebView.authenticateUser(User(id = "3", email = "toto@gmail.com", firstName = "tata", lastName = "titi"))
         initListeners()
+        askForPermissions()
         tabs.getTabAt(2)!!.select()
     }
 
     private fun initListeners(){
         tvManualInvocation.setOnClickListener {
-            weLoopWebView.resumeWeLoop()
             if (tabs.selectedTabPosition == 0) {
                 weLoopWebView.invoke()
             }
@@ -47,6 +53,31 @@ class MainActivity : AppCompatActivity() {
 
             }
         })
+    }
+
+    private fun askForPermissions() {
+        if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 36)
+        }
+    }
+
+    /***
+     * Request permission results
+     */
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == 36) {
+
+            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+
+            } else {
+                Toast.makeText(this, "error accessing storage", Toast.LENGTH_LONG).show()
+                finish()
+            }
+
+        }
     }
 
     override fun onBackPressed() {
