@@ -32,6 +32,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun initListeners(){
         tvManualInvocation.setOnClickListener {
+            weLoopWebView.resumeWeLoop()
             if (tabs.selectedTabPosition == 0) {
                 weLoopWebView.invoke()
             }
@@ -83,6 +84,7 @@ class MainActivity : AppCompatActivity() {
     override fun onBackPressed() {
         if (webview.visibility == View.VISIBLE){
             webview.visibility = View.GONE
+            fab.visibility = View.VISIBLE
         }
         else {
             super.onBackPressed()
