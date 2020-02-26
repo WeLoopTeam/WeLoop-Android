@@ -56,15 +56,6 @@
             android:text="manual invocation"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
-
-        <ImageView
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="20dp"
-            android:src="@android:drawable/alert_dark_frame"
-            android:id="@+id/toto"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
     </LinearLayout>
 
     <com.weloop.weloop.FloatingWidget

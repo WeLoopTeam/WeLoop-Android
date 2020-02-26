@@ -18,13 +18,13 @@ class WebAppInterface {
     }
 
     @JavascriptInterface
-    fun getCurrentUser(): String{
-        return webAppListener.getCurrentUser()
+    fun getCurrentUser(){
+       webAppListener.getCurrentUser()
     }
 
     @JavascriptInterface
-    fun getCapture(): String{
-        return webAppListener.getCapture()
+    fun getCapture(){
+        webAppListener.getCapture()
     }
 
     @JavascriptInterface
@@ -34,8 +34,8 @@ class WebAppInterface {
 
     interface WebAppListener{
         fun closePanel()
-        fun getCurrentUser(): String
-        fun getCapture(): String
+        fun getCurrentUser()
+        fun getCapture()
         fun setNotificationCount(number: Int)
     }
 
