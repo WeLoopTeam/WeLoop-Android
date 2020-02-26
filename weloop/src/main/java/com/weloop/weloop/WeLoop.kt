@@ -30,6 +30,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import org.json.JSONObject
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.util.*
@@ -49,7 +50,7 @@ class WeLoop : WebView {
     private val disposable = CompositeDisposable()
     private lateinit var token: String
     private lateinit var window: Window
-    private lateinit var toto: ImageView
+    private var screenshot: String = ""
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
@@ -60,8 +61,7 @@ class WeLoop : WebView {
         settings.javaScriptEnabled = true
     }
 
-    fun initialize(apiKey: String, floatingWidget: FloatingWidget, window: Window, t: ImageView) {
-        this.toto =t
+    fun initialize(apiKey: String, floatingWidget: FloatingWidget, window: Window) {
         this.floatingWidget = floatingWidget
         this.window = window
         this.apiKey = apiKey
@@ -86,15 +86,16 @@ class WeLoop : WebView {
                 visibility = View.GONE
             }
 
-            override fun getCapture(): String {
-                return ""
+            override fun getCapture(){
+                loadUrl("javascript:GetCapture('data:image/jpg;base64, $screenshot')")
             }
 
-            override fun getCurrentUser(): String {
-                val map = mutableMapOf<String, String>()
+            override fun getCurrentUser(){
+               /* val map = mutableMapOf<String, String>()
                 map["token"] = token
-                map["apiKey"] = apiKey
-                return JSONObject(map.toMap()).toString()
+                map["apiKey"] = apiKey*/
+                loadUrl("javascript:GetCurrentUser({ appGuid: $apiKey, token: $token})")
+                //return JSONObject(map.toMap()).toString()
             }
 
             override fun setNotificationCount(number: Int) {
@@ -103,7 +104,7 @@ class WeLoop : WebView {
         })
     }
 
-    fun takeScreenshot(){
+    fun takeScreenshot(): Bitmap?{
         val now = Date()
         android.text.format.DateFormat.format("yyyy-MM-dd_hh:mm:ss", now);
         try {
@@ -114,11 +115,11 @@ class WeLoop : WebView {
             val v1 = window.decorView.rootView
             v1.setDrawingCacheEnabled(true)
             val bitmap = Bitmap.createBitmap(v1.getDrawingCache());
-            toto.setImageBitmap(bitmap)
-
+            return bitmap
         } catch (e: Throwable) {
             e.printStackTrace();
         }
+        return null
     }
 
     private fun initWidgetPreferences() {
@@ -262,6 +263,11 @@ class WeLoop : WebView {
     }
 
     fun invoke() {
+        val bitmap = takeScreenshot()
+        val byteArrayOutputStream =  ByteArrayOutputStream()
+        bitmap!!.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+        val byteArray = byteArrayOutputStream .toByteArray()
+        screenshot = Base64.encodeToString(byteArray, Base64.DEFAULT)
         visibility = View.VISIBLE
     }
 
