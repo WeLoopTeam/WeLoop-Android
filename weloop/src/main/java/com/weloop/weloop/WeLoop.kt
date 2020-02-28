@@ -96,13 +96,13 @@ class WeLoop : WebView {
             }
 
             override fun getCapture(){
-                Timer("SettingUp", false).schedule(3000) {
+                Timer("SettingUp", false).schedule(500) {
                     this@WeLoop.post { loadUrl("javascript:getCapture('data:image/jpg;base64, $screenshot')") }
                 }
             }
 
             override fun getCurrentUser(){
-                this@WeLoop.post { loadUrl("javascript:GetCurrentUser({ appGuid: $apiKey, token: $token})") }
+                this@WeLoop.post { loadUrl("javascript:GetCurrentUser({ appGuid: '$apiKey', token: '$token'})") }
             }
 
             override fun setNotificationCount(number: Int) {

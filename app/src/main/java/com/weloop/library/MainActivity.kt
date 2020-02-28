@@ -25,7 +25,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         weLoopWebView = webview
         weLoopWebView.initialize("742382b0-531e-11ea-8733-0fb1656485aa", fab, window)
-        weLoopWebView.authenticateUser(User(id = "3", email = "toto@gmail.com", firstName = "tata", lastName = "titi"))
+        weLoopWebView.authenticateUser(User(id = "3", email = "android.mobile.weloop@yopmail.com", firstName = "Android", lastName = "Mobile"))
         initListeners()
         askForPermissions()
         tabs.getTabAt(2)!!.select()
@@ -88,5 +88,15 @@ class MainActivity : AppCompatActivity() {
         else {
             super.onBackPressed()
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        weLoopWebView.destroyWeLoop()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        weLoopWebView.stopWeLoop()
     }
 }
