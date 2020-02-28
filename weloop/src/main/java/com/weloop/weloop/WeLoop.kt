@@ -14,6 +14,7 @@ import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.Window
+import android.webkit.PermissionRequest
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.widget.ImageView
@@ -64,9 +65,19 @@ class WeLoop : WebView {
 
     init {
         visibility = View.GONE
-        webChromeClient = WebChromeClient()
+        /*setWebChromeClient(object : WebChromeClient(){
+            override fun onPermissionRequest(request: PermissionRequest?) {
+                this@WeLoop.post { kotlin.run {
+                    request!!.grant(request.resources)
+                } }
+            }
+        })*/
         settings.domStorageEnabled = true
         settings.javaScriptCanOpenWindowsAutomatically = true
+       /* settings.allowFileAccess = true
+        settings.allowFileAccessFromFileURLs = true
+        settings.allowUniversalAccessFromFileURLs = true
+        settings.allowContentAccess = true*/
         settings.javaScriptEnabled = true
     }
 
@@ -102,7 +113,7 @@ class WeLoop : WebView {
             }
 
             override fun getCurrentUser(){
-                this@WeLoop.post { loadUrl("javascript:GetCurrentUser({ appGuid: $apiKey, token: $token})") }
+                this@WeLoop.post { loadUrl("javascript:GetCurrentUser({ appGuid: '$apiKey', token: '$token'})") }
             }
 
             override fun setNotificationCount(number: Int) {
