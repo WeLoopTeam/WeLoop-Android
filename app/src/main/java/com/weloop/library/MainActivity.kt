@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.google.android.material.tabs.TabLayout
@@ -72,10 +73,8 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == 36) {
 
             if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-
             } else {
-                Toast.makeText(this, "error accessing storage", Toast.LENGTH_LONG).show()
-                finish()
+                Toast.makeText(this, "The application needs these permissions", Toast.LENGTH_LONG).show()
             }
 
         }
