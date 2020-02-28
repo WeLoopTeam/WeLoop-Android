@@ -59,8 +59,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun askForPermissions() {
         if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            != PackageManager.PERMISSION_GRANTED
+            ||  checkSelfPermission(Manifest.permission.CAMERA)
+            != PackageManager.PERMISSION_GRANTED
+            ||  checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
             != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 36)
+            requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE), 36)
         }
     }
 
@@ -74,7 +78,7 @@ class MainActivity : AppCompatActivity() {
 
             if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
             } else {
-                Toast.makeText(this, "The application needs these permissions", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "L'application a besoin des permissions pour fonctionner", Toast.LENGTH_LONG).show()
             }
 
         }
