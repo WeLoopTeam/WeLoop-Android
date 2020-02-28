@@ -1,18 +1,23 @@
-[![Version](https://img.shields.io/cocoapods/v/WeLoop.svg?style=flat)](https://cocoapods.org/pods/WeLoop)
-[![Platform](https://img.shields.io/cocoapods/p/WeLoop.svg?style=flat)](https://cocoapods.org/pods/WeLoop)
+
 
 
 ## Requirements
 
-Since WeLoop builds in swift 5.0, Xcode 10.2 is required to build the project.
-
-The dependency requires iOS 9.0 or above to be built.
+minSdkVersion 23
 
 ## Setup
 
 ### Gradle
 
 gradle stuff
+
+### Updating the manifest
+
+```Android
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+```
 
 ## Usage
 
@@ -63,16 +68,6 @@ weLoopWebView.setInvocationMethod(WeLoop.MANUAL)
 
 weLoopWebView.invoke()
 
-```
-
-### Updating your plist
-
-Since WeLoop offers the possibility to upload photos from the user photo gallery and from the camera, you will have to add the following entries to your plist, if they are not already present:
-
-```Android
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 ```
 
 ## License
