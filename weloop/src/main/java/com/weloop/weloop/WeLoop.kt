@@ -42,6 +42,7 @@ import javax.crypto.*
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
+import kotlin.concurrent.schedule
 import kotlin.concurrent.thread
 
 
@@ -54,6 +55,7 @@ class WeLoop : WebView {
     private var webViewInterface = WebAppInterface()
     private val disposable = CompositeDisposable()
     private lateinit var token: String
+    private var isPreferencesLoaded = false
     private lateinit var window: Window
     private var screenshot: String = ""
 
@@ -70,6 +72,7 @@ class WeLoop : WebView {
 
     fun initialize(apiKey: String, floatingWidget: FloatingWidget, window: Window) {
         this.floatingWidget = floatingWidget
+        this.floatingWidget.visibility = View.GONE
         this.window = window
         this.apiKey = apiKey
         initWebAppListener()
@@ -93,7 +96,9 @@ class WeLoop : WebView {
             }
 
             override fun getCapture(){
-                this@WeLoop.post {loadUrl("javascript:GetCapture('data:image/jpg;base64, $screenshot')")}
+                Timer("SettingUp", false).schedule(3000) {
+                    this@WeLoop.post { loadUrl("javascript:getCapture('data:image/jpg;base64, $screenshot')") }
+                }
             }
 
             override fun getCurrentUser(){
@@ -169,7 +174,7 @@ class WeLoop : WebView {
                         LinearLayout.LayoutParams.WRAP_CONTENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
                     ).apply {
-                        setMargins(0, 0, 10, 10)
+                        setMargins(0, 0, 40, 40)
                         gravity = Gravity.END or Gravity.BOTTOM
                     }
                     this.floatingWidget.layoutParams = params
@@ -183,6 +188,8 @@ class WeLoop : WebView {
                     }
                     this.floatingWidget.layoutParams = params
                 }
+                isPreferencesLoaded = true
+                this.floatingWidget.visibility = View.VISIBLE
             }
         )
     }
@@ -204,7 +211,7 @@ class WeLoop : WebView {
     private fun renderInvocation() {
         when (currentInvocationMethod) {
             FAB -> {
-                if (::floatingWidget.isInitialized) {
+                if (::floatingWidget.isInitialized && isPreferencesLoaded) {
                     floatingWidget.visibility = View.VISIBLE
                 }
                 ShakeDetector.stop()
@@ -256,7 +263,6 @@ class WeLoop : WebView {
         const val FAB = 0
         const val SHAKE_GESTURE = 1
         const val MANUAL = 2
-        private const val TRANSFORMATION = "AES/CBC/PKCS5Padding"
         private const val URL = "https://staging-widget.30kg-rice.cooking/home?appGuid="
     }
 }

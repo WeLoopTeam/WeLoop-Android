@@ -12,6 +12,7 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Parcelable
 import android.util.AttributeSet
 import android.util.Property
+import android.view.View
 import android.view.animation.OvershootInterpolator
 import androidx.annotation.IntRange
 import androidx.core.graphics.ColorUtils
