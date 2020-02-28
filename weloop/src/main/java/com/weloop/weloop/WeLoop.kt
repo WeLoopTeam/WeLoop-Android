@@ -65,19 +65,8 @@ class WeLoop : WebView {
 
     init {
         visibility = View.GONE
-        /*setWebChromeClient(object : WebChromeClient(){
-            override fun onPermissionRequest(request: PermissionRequest?) {
-                this@WeLoop.post { kotlin.run {
-                    request!!.grant(request.resources)
-                } }
-            }
-        })*/
         settings.domStorageEnabled = true
         settings.javaScriptCanOpenWindowsAutomatically = true
-       /* settings.allowFileAccess = true
-        settings.allowFileAccessFromFileURLs = true
-        settings.allowUniversalAccessFromFileURLs = true
-        settings.allowContentAccess = true*/
         settings.javaScriptEnabled = true
     }
 
@@ -132,8 +121,7 @@ class WeLoop : WebView {
             // create bitmap screen capture
             val v1 = window.decorView.rootView
             v1.setDrawingCacheEnabled(true)
-            val bitmap = Bitmap.createBitmap(v1.getDrawingCache())
-            return bitmap
+            return Bitmap.createBitmap(v1.getDrawingCache())
         } catch (e: Throwable) {
             e.printStackTrace()
         }
