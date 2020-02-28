@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.os.AsyncTask
 import android.os.Environment
 import android.util.AttributeSet
 import android.util.Base64
@@ -65,6 +66,7 @@ class WeLoop : WebView {
 
     init {
         visibility = View.GONE
+        webChromeClient = WebChromeClient()
         settings.domStorageEnabled = true
         settings.javaScriptCanOpenWindowsAutomatically = true
         settings.javaScriptEnabled = true
@@ -87,45 +89,6 @@ class WeLoop : WebView {
 
         loadUrl(URL + apiKey)
         initWidgetPreferences()
-    }
-
-    private fun initWebAppListener() {
-        webViewInterface.addListener(object : WebAppInterface.WebAppListener {
-            override fun closePanel() {
-                this@WeLoop.post { visibility = View.GONE ; floatingWidget.visibility = View.VISIBLE ; loadHome() }
-            }
-
-            override fun getCapture(){
-                Timer("SettingUp", false).schedule(3000) {
-                    this@WeLoop.post { loadUrl("javascript:getCapture('data:image/jpg;base64, $screenshot')") }
-                }
-            }
-
-            override fun getCurrentUser(){
-                this@WeLoop.post { loadUrl("javascript:GetCurrentUser({ appGuid: '$apiKey', token: '$token'})") }
-            }
-
-            override fun setNotificationCount(number: Int) {
-                floatingWidget.count = number
-            }
-        })
-    }
-
-    private fun takeScreenshot(): Bitmap?{
-        val now = Date()
-        android.text.format.DateFormat.format("yyyy-MM-dd_hh:mm:ss", now)
-        try {
-            // image naming and path  to include sd card  appending name you choose for file
-            val mPath = Environment.getExternalStorageDirectory().toString() + "/" + now + ".jpg"
-
-            // create bitmap screen capture
-            val v1 = window.decorView.rootView
-            v1.setDrawingCacheEnabled(true)
-            return Bitmap.createBitmap(v1.getDrawingCache())
-        } catch (e: Throwable) {
-            e.printStackTrace()
-        }
-        return null
     }
 
     private fun initWidgetPreferences() {
@@ -246,16 +209,72 @@ class WeLoop : WebView {
         this.post { loadUrl(URL + apiKey) }
     }
 
+
+    private fun initWebAppListener() {
+        webViewInterface.addListener(object : WebAppInterface.WebAppListener {
+            override fun closePanel() {
+                this@WeLoop.post { visibility = View.GONE ; floatingWidget.visibility = View.VISIBLE ; loadHome() }
+            }
+
+            override fun getCapture(){
+                /*Timer("SettingUp", false).schedule(3000) {
+                    this@WeLoop.post { loadUrl("javascript:getCapture('data:image/jpg;base64, $screenshot')") }
+                }*/
+            }
+
+            override fun getCurrentUser(){
+                this@WeLoop.post { loadUrl("javascript:GetCurrentUser({ appGuid: '$apiKey', token: '$token'})") }
+            }
+
+            override fun setNotificationCount(number: Int) {
+                floatingWidget.count = number
+            }
+        })
+    }
+
+    class TakeScreenshotTask(val weLoop: WeLoop) : AsyncTask<Void, Void, String>() {
+        override fun doInBackground(vararg params: Void?): String? {
+            val byteArrayOutputStream =  ByteArrayOutputStream()
+            val bitmap = weLoop.takeScreenshot()
+            bitmap!!.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+            val byteArray = byteArrayOutputStream .toByteArray()
+            return Base64.encodeToString(byteArray, Base64.DEFAULT)
+        }
+
+        override fun onPostExecute(result: String?) {
+            super.onPostExecute(result)
+            weLoop.screenshot = result!!
+            weLoop.post { weLoop.loadUrl("javascript:getCapture('data:image/jpg;base64, ${weLoop.screenshot}')") }
+        }
+    }
     fun invoke() {
         floatingWidget.visibility = View.GONE
-        val bitmap = takeScreenshot()
+        /*val bitmap = takeScreenshot()
         val byteArrayOutputStream =  ByteArrayOutputStream()
         thread {
             bitmap!!.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
             val byteArray = byteArrayOutputStream .toByteArray()
             screenshot = Base64.encodeToString(byteArray, Base64.DEFAULT)
-        }
+        }*/
+        TakeScreenshotTask(this).execute()
         visibility = View.VISIBLE
+    }
+
+    private fun takeScreenshot(): Bitmap?{
+        val now = Date()
+        android.text.format.DateFormat.format("yyyy-MM-dd_hh:mm:ss", now)
+        try {
+            // image naming and path  to include sd card  appending name you choose for file
+            val mPath = Environment.getExternalStorageDirectory().toString() + "/" + now + ".jpg"
+
+            // create bitmap screen capture
+            val v1 = window.decorView.rootView
+            v1.setDrawingCacheEnabled(true)
+            return Bitmap.createBitmap(v1.getDrawingCache())
+        } catch (e: Throwable) {
+            e.printStackTrace()
+        }
+        return null
     }
 
     companion object {

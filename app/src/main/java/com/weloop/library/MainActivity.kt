@@ -23,7 +23,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        weLoopWebView.resumeWeLoop()
         weLoopWebView = webview
         weLoopWebView.initialize("742382b0-531e-11ea-8733-0fb1656485aa", fab, window)
         weLoopWebView.authenticateUser(User(id = "3", email = "toto@gmail.com", firstName = "tata", lastName = "titi"))
