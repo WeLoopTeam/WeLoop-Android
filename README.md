@@ -87,7 +87,7 @@ Do not forget to destroy/stop/start the weloop
 ```
 In order to invoke WeLoop you have two options. 
 
-1. You provide the user identity. Simply provide your project key, and identity the current user by calling `identifyUser`.
+1. You provide the user identity. Simply provide your project key, and identity the current user by calling `authenticateUser`.
 
 Kotlin:
 ```kotlin
