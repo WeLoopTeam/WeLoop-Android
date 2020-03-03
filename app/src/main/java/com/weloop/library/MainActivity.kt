@@ -63,10 +63,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun askForPermissions() {
         if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            != PackageManager.PERMISSION_GRANTED
-            ||  checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
             != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE), 36)
+            requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 36)
         }
     }
 
