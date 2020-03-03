@@ -109,6 +109,24 @@ weLoopWebView.authenticateUser(User("3","toto@gmail.com","tata","titi"))
 weLoopWebView.initialize("YOUR_PROJECT_GUID", fab, this.getWindow())// from a fragment : activity.getWindow()
 ```
 
+### Listener
+If you want to get the notification number in real time :
+Kotlin:
+```kotlin
+weLoopWebView.addListener(object : WeLoop.NotificationListener{
+            override fun getNotification(number: Int){
+                //doSomeStuff
+            }
+        })
+```
+Java:
+```java
+weLoopWebView.addListener(object : WeLoop.NotificationListener{
+            override fun getNotification(number: Int){
+                //doSomeStuff
+            }
+        })
+```
 
 ### Invocation method
 
