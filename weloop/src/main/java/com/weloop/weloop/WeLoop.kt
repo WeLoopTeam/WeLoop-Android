@@ -227,9 +227,7 @@ class WeLoop : WebView {
     private fun initWebAppListener() {
         webViewInterface.addListener(object : WebAppInterface.WebAppListener {
             override fun closePanel() {
-                this@WeLoop.post {
-                    visibility = View.GONE; floatingWidget.visibility = View.VISIBLE; loadHome()
-                }
+                this@WeLoop.post { visibility = View.GONE; floatingWidget.visibility = View.VISIBLE }
             }
 
             override fun getCapture() {
