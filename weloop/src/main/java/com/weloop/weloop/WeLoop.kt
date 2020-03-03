@@ -221,7 +221,7 @@ class WeLoop : WebView {
                 if (screenshot.isNotEmpty()){
                     Log.e("screenshot:", screenshot)
                     Timer("settingUp", false).schedule(50) {
-                        this@WeLoop.post { loadUrl("javascript:getCapture('data:image/jpg;base64, ${screenshot}')") ; screenshot = "" ; screenShotAsked = false }
+                        this@WeLoop.post { loadUrl("javascript:getCapture('data:image/jpg;base64, ${screenshot}')") ; screenShotAsked = false }
                     }
                 }
                 else {
@@ -251,7 +251,7 @@ class WeLoop : WebView {
             super.onPostExecute(result)
             weLoop.screenshot = result!!
             if (weLoop.screenShotAsked){
-                weLoop.post { weLoop.loadUrl("javascript:getCapture('data:image/jpg;base64, ${weLoop.screenshot}')") ; weLoop.screenshot = "" ; weLoop.screenShotAsked = false}
+                weLoop.post { weLoop.loadUrl("javascript:getCapture('data:image/jpg;base64, ${weLoop.screenshot}')") ; weLoop.screenShotAsked = false}
             }
         }
     }
