@@ -50,6 +50,7 @@ class WeLoop : WebView {
     private var screenShotAsked = false
     private lateinit var dialog: SweetAlertDialog
     private var shouldShowDialog = false
+    private lateinit var notificationListener: NotificationListener
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
@@ -93,10 +94,10 @@ class WeLoop : WebView {
         disposable.add(ApiServiceImp.getWidgetPreferences(this.apiKey)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .doOnError {
+            .doOnError{
 
             }
-            .subscribe {
+            .subscribe ({
                 if (it.widgetPrimaryColor != null) {
                     this.floatingWidget.backgroundTintList = ColorStateList.valueOf(
                         Color.rgb(
@@ -150,7 +151,7 @@ class WeLoop : WebView {
                 }
                 isPreferencesLoaded = true
                 this.floatingWidget.visibility = View.VISIBLE
-            }
+            }, Throwable::printStackTrace)
         )
     }
 
@@ -161,6 +162,10 @@ class WeLoop : WebView {
         } else {
             Toast.makeText(context, "email incorrecte", Toast.LENGTH_LONG).show()
         }
+    }
+
+    fun addListener(notificationListener: NotificationListener){
+        this.notificationListener = notificationListener
     }
 
     fun setInvocationMethod(invocationMethod: Int) {
@@ -234,6 +239,9 @@ class WeLoop : WebView {
 
             override fun setNotificationCount(number: Int) {
                 floatingWidget.count = number
+                if (::notificationListener.isInitialized) {
+                    notificationListener.getNotification(number)
+                }
             }
         })
     }
@@ -261,13 +269,6 @@ class WeLoop : WebView {
 
     fun invoke() {
         floatingWidget.visibility = View.GONE
-        /*val bitmap = takeScreenshot()
-        val byteArrayOutputStream =  ByteArrayOutputStream()
-        thread {
-            bitmap!!.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
-            val byteArray = byteArrayOutputStream .toByteArray()
-            screenshot = Base64.encodeToString(byteArray, Base64.DEFAULT)
-        }*/
         TakeScreenshotTask(this, takeScreenshot()!!).execute()
         visibility = View.VISIBLE
         if (shouldShowDialog) {
@@ -292,6 +293,10 @@ class WeLoop : WebView {
             e.printStackTrace()
         }
         return null
+    }
+
+    interface NotificationListener{
+        fun getNotification(number: Int)
     }
 
     companion object {

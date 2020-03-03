@@ -21,6 +21,11 @@ class MainActivity : AppCompatActivity() {
         weLoopWebView = webview
         weLoopWebView.initialize("742382b0-531e-11ea-8733-0fb1656485aa", fab, window)
         weLoopWebView.authenticateUser(User(id = "3", email = "toto@gmail.com", firstName = "tata", lastName = "titi"))
+        weLoopWebView.addListener(object : WeLoop.NotificationListener{
+            override fun getNotification(number: Int){
+                //doSomeStuff
+            }
+        })
         initListeners()
         askForPermissions()
         tabs.getTabAt(2)!!.select()
