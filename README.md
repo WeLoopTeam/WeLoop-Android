@@ -51,7 +51,8 @@ kotlin:
 ```kotlin
 var weloopWebview = webview
 ```
-Do not forget to destroy/stop/start the weloop
+Do not forget to destroy/stop/start your weloop var
+Kotlin:
 ```kotlin
     override fun onStart() {
         super.onStart()
@@ -68,7 +69,7 @@ Do not forget to destroy/stop/start the weloop
         weLoopWebView.stopWeLoop()
     }
 ```
-
+Java:
 ```java
     void onStart() {
         super.onStart()
