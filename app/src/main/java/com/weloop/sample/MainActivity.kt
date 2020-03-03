@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.google.android.material.tabs.TabLayout
@@ -24,6 +25,7 @@ class MainActivity : AppCompatActivity() {
         weLoopWebView.addListener(object : WeLoop.NotificationListener{
             override fun getNotification(number: Int){
                 //doSomeStuff
+                Log.e("Notif", number.toString())
             }
         })
         initListeners()
