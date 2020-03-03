@@ -72,15 +72,13 @@ class WeLoop : WebView {
 
     init {
         visibility = View.GONE
-        setWebViewClient(object : WebViewClient(){
+        setWebViewClient(object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
-                if (url!!.contains(URL)){
-                    shouldShowDialog = false
+                if (url!!.contains(URL)) {
                     if (::dialog.isInitialized) {
-                        if (dialog.isShowing) {
-                            dialog.dismissWithAnimation()
-                        }
+                        dialog.dismissWithAnimation()
                     }
+                    shouldShowDialog = false
                 }
             }
         })
@@ -221,30 +219,34 @@ class WeLoop : WebView {
         ShakeDetector.destroy()
     }
 
-    private fun loadHome(){
-        this.post { loadUrl(URL + apiKey) ; shouldShowDialog = true}
+    private fun loadHome() {
+        this.post { loadUrl(URL + apiKey); shouldShowDialog = true }
     }
 
 
     private fun initWebAppListener() {
         webViewInterface.addListener(object : WebAppInterface.WebAppListener {
             override fun closePanel() {
-                this@WeLoop.post { visibility = View.GONE ; floatingWidget.visibility = View.VISIBLE ; loadHome()}
+                this@WeLoop.post {
+                    visibility = View.GONE; floatingWidget.visibility = View.VISIBLE; loadHome()
+                }
             }
 
-            override fun getCapture(){
-                if (screenshot.isNotEmpty()){
+            override fun getCapture() {
+                if (screenshot.isNotEmpty()) {
                     Log.e("screenshot:", screenshot)
                     Timer("settingUp", false).schedule(50) {
-                        this@WeLoop.post { loadUrl("javascript:getCapture('data:image/jpg;base64, ${screenshot}')") ; screenShotAsked = false }
+                        this@WeLoop.post {
+                            loadUrl("javascript:getCapture('data:image/jpg;base64, ${screenshot}')"); screenShotAsked =
+                            false
+                        }
                     }
-                }
-                else {
+                } else {
                     screenShotAsked = true
                 }
             }
 
-            override fun getCurrentUser(){
+            override fun getCurrentUser() {
                 this@WeLoop.post { loadUrl("javascript:GetCurrentUser({ appGuid: '$apiKey', token: '$token'})") }
             }
 
@@ -254,22 +256,27 @@ class WeLoop : WebView {
         })
     }
 
-    class TakeScreenshotTask(val weLoop: WeLoop, val bitmap: Bitmap) : AsyncTask<Void, Void, String>() {
+    class TakeScreenshotTask(val weLoop: WeLoop, val bitmap: Bitmap) :
+        AsyncTask<Void, Void, String>() {
         override fun doInBackground(vararg params: Void?): String? {
-            val byteArrayOutputStream =  ByteArrayOutputStream()
+            val byteArrayOutputStream = ByteArrayOutputStream()
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
-            val byteArray = byteArrayOutputStream .toByteArray()
+            val byteArray = byteArrayOutputStream.toByteArray()
             return Base64.encodeToString(byteArray, Base64.DEFAULT)
         }
 
         override fun onPostExecute(result: String?) {
             super.onPostExecute(result)
             weLoop.screenshot = result!!
-            if (weLoop.screenShotAsked){
-                weLoop.post { weLoop.loadUrl("javascript:getCapture('data:image/jpg;base64, ${weLoop.screenshot}')") ; weLoop.screenShotAsked = false}
+            if (weLoop.screenShotAsked) {
+                weLoop.post {
+                    weLoop.loadUrl("javascript:getCapture('data:image/jpg;base64, ${weLoop.screenshot}')"); weLoop.screenShotAsked =
+                    false
+                }
             }
         }
     }
+
     fun invoke() {
         floatingWidget.visibility = View.GONE
         /*val bitmap = takeScreenshot()
@@ -281,14 +288,14 @@ class WeLoop : WebView {
         }*/
         TakeScreenshotTask(this, takeScreenshot()!!).execute()
         visibility = View.VISIBLE
-        if (shouldShowDialog){
+        if (shouldShowDialog) {
             dialog = SweetAlertDialog(context, SweetAlertDialog.PROGRESS_TYPE)
-            dialog.setCancelable(false)
+            dialog.setCancelable(true)
             dialog.show()
         }
     }
 
-    private fun takeScreenshot(): Bitmap?{
+    private fun takeScreenshot(): Bitmap? {
         val now = Date()
         android.text.format.DateFormat.format("yyyy-MM-dd_hh:mm:ss", now)
         try {
