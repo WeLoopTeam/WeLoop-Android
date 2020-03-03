@@ -18,10 +18,13 @@ import android.view.Window
 import android.webkit.PermissionRequest
 import android.webkit.WebChromeClient
 import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import cn.pedant.SweetAlert.SweetAlertDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
@@ -61,13 +64,26 @@ class WeLoop : WebView {
     private lateinit var window: Window
     private var screenshot: String = ""
     private var screenShotAsked = false
+    private lateinit var dialog: SweetAlertDialog
+    private var shouldShowDialog = false
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
 
     init {
         visibility = View.GONE
-        webChromeClient = WebChromeClient()
+        setWebViewClient(object : WebViewClient(){
+            override fun onPageFinished(view: WebView?, url: String?) {
+                if (url!!.contains(URL)){
+                    shouldShowDialog = false
+                    if (::dialog.isInitialized) {
+                        if (dialog.isShowing) {
+                            dialog.dismissWithAnimation()
+                        }
+                    }
+                }
+            }
+        })
         settings.domStorageEnabled = true
         settings.javaScriptCanOpenWindowsAutomatically = true
         settings.javaScriptEnabled = true
@@ -87,8 +103,7 @@ class WeLoop : WebView {
         this.floatingWidget.setOnClickListener {
             invoke()
         }
-
-        loadUrl(URL + apiKey)
+        loadHome()
         initWidgetPreferences()
     }
 
@@ -207,14 +222,14 @@ class WeLoop : WebView {
     }
 
     private fun loadHome(){
-        this.post { loadUrl(URL + apiKey) }
+        this.post { loadUrl(URL + apiKey) ; shouldShowDialog = true}
     }
 
 
     private fun initWebAppListener() {
         webViewInterface.addListener(object : WebAppInterface.WebAppListener {
             override fun closePanel() {
-                this@WeLoop.post { visibility = View.GONE ; floatingWidget.visibility = View.VISIBLE ; loadHome() }
+                this@WeLoop.post { visibility = View.GONE ; floatingWidget.visibility = View.VISIBLE ; loadHome()}
             }
 
             override fun getCapture(){
@@ -266,6 +281,11 @@ class WeLoop : WebView {
         }*/
         TakeScreenshotTask(this, takeScreenshot()!!).execute()
         visibility = View.VISIBLE
+        if (shouldShowDialog){
+            dialog = SweetAlertDialog(context, SweetAlertDialog.PROGRESS_TYPE)
+            dialog.setCancelable(false)
+            dialog.show()
+        }
     }
 
     private fun takeScreenshot(): Bitmap?{
