@@ -1,20 +1,15 @@
-package com.weloop.library
+package com.weloop.sample
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.google.android.material.tabs.TabLayout
-import com.weloop.weloop.FloatingWidget
 import com.weloop.weloop.WeLoop
 import com.weloop.weloop.model.User
 import kotlinx.android.synthetic.main.activity_main.*
-import java.io.File
 
 class MainActivity : AppCompatActivity() {
 
