@@ -23,21 +23,47 @@ gradle stuff
 
 ### Invocation
 
+First you must implement the floating button and the webview :
+webview :
+```xml
+        <com.weloop.weloop.WeLoop
+            android:id="@+id/webview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+```
+fab :
+```xml
+<com.weloop.weloop.FloatingWidget
+        app:badgeBackgroundColor="@color/defaultColorBadge"
+        android:background="@android:color/black"
+        android:id="@+id/fab"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="20dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+```
+
 In order to invoke WeLoop you have two options. 
 
 1. You provide the user identity. Simply provide your project key, and identity the current user by calling `identifyUser`.
 
-
+Kotlin:
 ```kotlin
 //fab is the FloatingWeidget view
-weLoopWebView.initialize("YOUR_PROJECT_GUID", fab, this.window)
+weLoopWebView.initialize("YOUR_PROJECT_GUID", fab, this.window)// from a fragment : activity.window
+weLoopWebView.authenticateUser(User(id = "3", email = "toto@gmail.com", firstName = "tata", lastName = "titi"))
+```
+Java
+```java
+//fab is the FloatingWeidget view
+weLoopWebView.initialize("YOUR_PROJECT_GUID", fab, this.getWindow())// from a fragment : activity.getWindow()
 weLoopWebView.authenticateUser(User(id = "3", email = "toto@gmail.com", firstName = "tata", lastName = "titi"))
 ```
 
 2. You let the user provide its login infos: don't call `authenticateUser``, and the widget will show the login page when it's launched.
 
 ```kotlin
-weLoopWebView.initialize("YOUR_PROJECT_GUID", fab, window)
+weLoopWebView.initialize("YOUR_PROJECT_GUID", fab, this.getWindow())// from a fragment : activity.getWindow()
 ```
 
 
