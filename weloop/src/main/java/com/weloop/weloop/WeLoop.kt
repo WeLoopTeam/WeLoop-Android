@@ -1,12 +1,10 @@
 package com.weloop.weloop
 
 import android.content.Context
-import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.os.AsyncTask
 import android.os.Environment
 import android.util.AttributeSet
@@ -15,14 +13,10 @@ import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.Window
-import android.webkit.PermissionRequest
-import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import cn.pedant.SweetAlert.SweetAlertDialog
 import com.bumptech.glide.Glide
@@ -36,19 +30,9 @@ import com.weloop.weloop.network.ApiServiceImp
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
-import org.json.JSONObject
 import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileOutputStream
-import java.lang.Exception
-import java.security.SecureRandom
 import java.util.*
-import javax.crypto.*
-import javax.crypto.spec.IvParameterSpec
-import javax.crypto.spec.PBEKeySpec
-import javax.crypto.spec.SecretKeySpec
 import kotlin.concurrent.schedule
-import kotlin.concurrent.thread
 
 
 /* Created by *-----* Alexandre Thauvin *-----* */
