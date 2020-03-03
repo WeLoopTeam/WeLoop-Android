@@ -99,7 +99,7 @@ Java:
 ```java
 //fab is the FloatingWeidget view
 weLoopWebView.initialize("YOUR_PROJECT_GUID", fab, this.getWindow())// from a fragment : activity.getWindow()
-weLoopWebView.authenticateUser(User(id = "3", email = "toto@gmail.com", firstName = "tata", lastName = "titi"))
+weLoopWebView.authenticateUser(User("3","toto@gmail.com","tata","titi"))
 ```
 
 2. You let the user provide its login infos: don't call `authenticateUser``, and the widget will show the login page when it's launched.
