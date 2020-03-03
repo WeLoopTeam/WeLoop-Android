@@ -110,7 +110,7 @@ weLoopWebView.initialize("YOUR_PROJECT_GUID", fab, this.getWindow())// from a fr
 ```
 
 ### Listener
-If you want to get the notification number in real time :
+If you want to get the notification number in real time :  
 Kotlin:
 ```kotlin
 weLoopWebView.addListener(object : WeLoop.NotificationListener{
