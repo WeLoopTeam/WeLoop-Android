@@ -1,4 +1,4 @@
-package com.weloop.library
+package com.weloop.sample
 
 import org.junit.Test
 
