@@ -16,14 +16,14 @@ gradle stuff
 ```xml
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 ```
+Do not forget to check the permission at the runtime : https://developer.android.com/training/permissions/requesting
 
 ## Usage
 
 ### Invocation
 
-First you must implement the floating button and the webview :
+First you must implement the floating button and the webview :  
 webview :
 ```xml
         <com.weloop.weloop.WeLoop
@@ -42,7 +42,49 @@ fab :
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 ```
+init your WeLoop var :
+Java:
+```java
+Weloop weloopWebView = findViewById(R.id.webview)
+```
+kotlin:
+```kotlin
+var weloopWebview = webview
+```
+Do not forget to destroy/stop/start the weloop
+```kotlin
+    override fun onStart() {
+        super.onStart()
+        weLoopWebView.resumeWeLoop()
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        weLoopWebView.destroyWeLoop()
+    }
 
+    override fun onStop() {
+        super.onStop()
+        weLoopWebView.stopWeLoop()
+    }
+```
+
+```java
+    void onStart() {
+        super.onStart()
+        weLoopWebView.resumeWeLoop()
+    }
+    
+    void onDestroy() {
+        super.onDestroy()
+        weLoopWebView.destroyWeLoop()
+    }
+
+    void fun onStop() {
+        super.onStop()
+        weLoopWebView.stopWeLoop()
+    }
+```
 In order to invoke WeLoop you have two options. 
 
 1. You provide the user identity. Simply provide your project key, and identity the current user by calling `identifyUser`.
