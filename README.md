@@ -42,7 +42,7 @@ fab :
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 ```
-init your WeLoop var :
+Init your WeLoop var :  
 Java:
 ```java
 Weloop weloopWebView = findViewById(R.id.webview)
