@@ -45,6 +45,9 @@ dependencies {
     implementation "com.squareup.retrofit2:converter-gson:2.6.1"
 
 
+    //alert dialog
+    implementation 'com.github.f0ris.sweetalert:library:1.5.6'
+
     //shake
     implementation 'com.github.tbouron.shakedetector:library:1.0.0@aar'
 
