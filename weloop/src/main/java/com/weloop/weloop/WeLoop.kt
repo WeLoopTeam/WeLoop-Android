@@ -60,6 +60,7 @@ class WeLoop : WebView {
     private var isPreferencesLoaded = false
     private lateinit var window: Window
     private var screenshot: String = ""
+    private var screenShotAsked = false
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
@@ -217,9 +218,15 @@ class WeLoop : WebView {
             }
 
             override fun getCapture(){
-                /*Timer("SettingUp", false).schedule(3000) {
-                    this@WeLoop.post { loadUrl("javascript:getCapture('data:image/jpg;base64, $screenshot')") }
-                }*/
+                if (screenshot.isNotEmpty()){
+                    Log.e("screenshot:", screenshot)
+                    Timer("settingUp", false).schedule(50) {
+                        this@WeLoop.post { loadUrl("javascript:getCapture('data:image/jpg;base64, ${screenshot}')") ; screenshot = "" ; screenShotAsked = false }
+                    }
+                }
+                else {
+                    screenShotAsked = true
+                }
             }
 
             override fun getCurrentUser(){
@@ -232,11 +239,10 @@ class WeLoop : WebView {
         })
     }
 
-    class TakeScreenshotTask(val weLoop: WeLoop) : AsyncTask<Void, Void, String>() {
+    class TakeScreenshotTask(val weLoop: WeLoop, val bitmap: Bitmap) : AsyncTask<Void, Void, String>() {
         override fun doInBackground(vararg params: Void?): String? {
             val byteArrayOutputStream =  ByteArrayOutputStream()
-            val bitmap = weLoop.takeScreenshot()
-            bitmap!!.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
             val byteArray = byteArrayOutputStream .toByteArray()
             return Base64.encodeToString(byteArray, Base64.DEFAULT)
         }
@@ -244,7 +250,9 @@ class WeLoop : WebView {
         override fun onPostExecute(result: String?) {
             super.onPostExecute(result)
             weLoop.screenshot = result!!
-            weLoop.post { weLoop.loadUrl("javascript:getCapture('data:image/jpg;base64, ${weLoop.screenshot}')") }
+            if (weLoop.screenShotAsked){
+                weLoop.post { weLoop.loadUrl("javascript:getCapture('data:image/jpg;base64, ${weLoop.screenshot}')") ; weLoop.screenshot = "" ; weLoop.screenShotAsked = false}
+            }
         }
     }
     fun invoke() {
@@ -256,7 +264,7 @@ class WeLoop : WebView {
             val byteArray = byteArrayOutputStream .toByteArray()
             screenshot = Base64.encodeToString(byteArray, Base64.DEFAULT)
         }*/
-        TakeScreenshotTask(this).execute()
+        TakeScreenshotTask(this, takeScreenshot()!!).execute()
         visibility = View.VISIBLE
     }
 
