@@ -95,7 +95,7 @@ Kotlin:
 weLoopWebView.initialize("YOUR_PROJECT_GUID", fab, this.window)// from a fragment : activity.window
 weLoopWebView.authenticateUser(User(id = "3", email = "toto@gmail.com", firstName = "tata", lastName = "titi"))
 ```
-Java
+Java:
 ```java
 //fab is the FloatingWeidget view
 weLoopWebView.initialize("YOUR_PROJECT_GUID", fab, this.getWindow())// from a fragment : activity.getWindow()
