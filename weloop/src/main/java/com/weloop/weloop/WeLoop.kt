@@ -25,8 +25,8 @@ import com.bumptech.glide.request.transition.Transition
 import com.github.tbouron.shakedetector.library.ShakeDetector
 import com.github.tbouron.shakedetector.library.ShakeDetector.OnShakeListener
 import com.weloop.weloop.model.User
-import com.weloop.weloop.model.WebAppInterface
 import com.weloop.weloop.network.ApiServiceImp
+import com.weloop.weloop.utils.AES256Cryptor
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
@@ -57,16 +57,6 @@ class WeLoop : WebView {
 
     init {
         visibility = View.GONE
-        setWebViewClient(object : WebViewClient() {
-            override fun onPageFinished(view: WebView?, url: String?) {
-                if (url!!.contains(URL)) {
-                    if (::dialog.isInitialized) {
-                        dialog.dismissWithAnimation()
-                    }
-                    shouldShowDialog = false
-                }
-            }
-        })
         settings.domStorageEnabled = true
         settings.javaScriptCanOpenWindowsAutomatically = true
         settings.javaScriptEnabled = true
@@ -155,24 +145,6 @@ class WeLoop : WebView {
         )
     }
 
-    fun authenticateUser(user: User) {
-        if (android.util.Patterns.EMAIL_ADDRESS.matcher(user.email).matches()) {
-            val str = user.email + "|" + user.firstName + "|" + user.lastName + "|" + user.id
-            token = AES256Cryptor.encrypt(str, apiKey)
-        } else {
-            Toast.makeText(context, "email incorrecte", Toast.LENGTH_LONG).show()
-        }
-    }
-
-    fun addListener(notificationListener: NotificationListener){
-        this.notificationListener = notificationListener
-    }
-
-    fun setInvocationMethod(invocationMethod: Int) {
-        this.currentInvocationMethod = invocationMethod
-        renderInvocation()
-    }
-
     private fun renderInvocation() {
         when (currentInvocationMethod) {
             FAB -> {
@@ -196,23 +168,6 @@ class WeLoop : WebView {
         }
     }
 
-    fun resumeWeLoop() {
-        ShakeDetector.start()
-    }
-
-    fun stopWeLoop() {
-        ShakeDetector.stop()
-    }
-
-    fun destroyWeLoop() {
-        ShakeDetector.destroy()
-    }
-
-    private fun loadHome() {
-        this.post { loadUrl(URL + apiKey); shouldShowDialog = true }
-    }
-
-
     private fun initWebAppListener() {
         webViewInterface.addListener(object : WebAppInterface.WebAppListener {
             override fun closePanel() {
@@ -234,13 +189,27 @@ class WeLoop : WebView {
             }
 
             override fun getCurrentUser() {
-                this@WeLoop.post { loadUrl("javascript:GetCurrentUser({ appGuid: '$apiKey', token: '$token'})") }
+                if (this@WeLoop::token.isInitialized) {
+                    this@WeLoop.post { loadUrl("javascript:GetCurrentUser({ appGuid: '$apiKey', token: '$token'})") }
+                }
+                else {
+                    this@WeLoop.post { loadUrl("javascript:GetCurrentUser({ appGuid: '$apiKey'})") }
+                }
             }
 
             override fun setNotificationCount(number: Int) {
                 floatingWidget.count = number
                 if (::notificationListener.isInitialized) {
                     notificationListener.getNotification(number)
+                }
+            }
+
+            override fun loadingFinished() {
+                shouldShowDialog = false
+                if (::dialog.isInitialized) {
+                    if (dialog.isShowing) {
+                        dialog.dismiss()
+                    }
                 }
             }
         })
@@ -294,6 +263,41 @@ class WeLoop : WebView {
         }
         return null
     }
+
+    fun resumeWeLoop() {
+        ShakeDetector.start()
+    }
+
+    fun stopWeLoop() {
+        ShakeDetector.stop()
+    }
+
+    fun destroyWeLoop() {
+        ShakeDetector.destroy()
+    }
+
+    private fun loadHome() {
+        this.post { loadUrl(URL + apiKey); shouldShowDialog = true }
+    }
+
+    fun authenticateUser(user: User) {
+        if (android.util.Patterns.EMAIL_ADDRESS.matcher(user.email).matches()) {
+            val str = user.email + "|" + user.firstName + "|" + user.lastName + "|" + user.id
+            token = AES256Cryptor.encrypt(str, apiKey)
+        } else {
+            Toast.makeText(context, "email incorrecte", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    fun addListener(notificationListener: NotificationListener){
+        this.notificationListener = notificationListener
+    }
+
+    fun setInvocationMethod(invocationMethod: Int) {
+        this.currentInvocationMethod = invocationMethod
+        renderInvocation()
+    }
+
 
     interface NotificationListener{
         fun getNotification(number: Int)
