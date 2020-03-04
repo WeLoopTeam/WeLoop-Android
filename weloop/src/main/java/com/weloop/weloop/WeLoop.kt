@@ -177,12 +177,8 @@ class WeLoop : WebView {
             override fun getCapture() {
                 if (screenshot.isNotEmpty()) {
                     Log.e("screenshot:", screenshot)
-                    Timer("settingUp", false).schedule(50) {
-                        this@WeLoop.post {
-                            loadUrl("javascript:getCapture('data:image/jpg;base64, ${screenshot}')"); screenShotAsked =
-                            false
-                        }
-                    }
+                        this@WeLoop.post { loadUrl("javascript:getCapture('data:im      90" +
+                                "; age/jpg;base64, ${screenshot}')"); screenShotAsked = false }
                 } else {
                     screenShotAsked = true
                 }
