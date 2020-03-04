@@ -1,4 +1,4 @@
-package com.weloop.weloop.model
+package com.weloop.weloop
 
 import android.webkit.JavascriptInterface
 
@@ -32,11 +32,17 @@ class WebAppInterface {
         webAppListener.setNotificationCount(number)
     }
 
+    @JavascriptInterface
+    fun IsLoaded(){
+        webAppListener.loadingFinished()
+    }
+
     interface WebAppListener{
         fun closePanel()
         fun getCurrentUser()
         fun getCapture()
         fun setNotificationCount(number: Int)
+        fun loadingFinished()
     }
 
 

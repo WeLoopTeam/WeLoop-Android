@@ -1,4 +1,4 @@
-package com.weloop.weloop;
+package com.weloop.weloop.utils;
 /* Created by *-----* Alexandre Thauvin *-----* */
 
 import android.util.Base64;
