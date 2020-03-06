@@ -11,14 +11,13 @@ Add it in your root build.gradle (project level) at the end of repositories:
 ```gradle
     allprojects {
 		repositories {
-			...
 			maven { url 'https://jitpack.io' }
 		}
 	}
 ```
 
 Add the dependency in your build.gradle (app level)
-```
+```gradle
 implementation 'com.github.WeLoopTeam:WeLoop-Android:1.0.2'
 ```
 
