@@ -1,5 +1,4 @@
-
-
+[![](https://jitpack.io/v/WeLoopTeam/WeLoop-Android.svg)](https://jitpack.io/#WeLoopTeam/WeLoop-Android)
 
 ## Requirements
 
@@ -8,8 +7,20 @@ minSdkVersion 23
 ## Setup
 
 ### Gradle
+Add it in your root build.gradle (project level) at the end of repositories:
+```gradle
+    allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+```
 
-gradle stuff
+Add the dependency in your build.gradle (app level)
+```
+implementation 'com.github.WeLoopTeam:WeLoop-Android:1.0.2'
+```
 
 ### Updating the manifest
 
