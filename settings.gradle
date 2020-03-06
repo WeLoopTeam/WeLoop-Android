@@ -1,2 +1,3 @@
 include ':weloop'
+include 'app'
 rootProject.name='WeLoop'
