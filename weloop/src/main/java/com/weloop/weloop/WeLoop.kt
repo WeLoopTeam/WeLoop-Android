@@ -303,6 +303,6 @@ class WeLoop : WebView {
         const val FAB = 0
         const val SHAKE_GESTURE = 1
         const val MANUAL = 2
-        private const val URL = "https://staging-widget.30kg-rice.cooking/home?appGuid="
+        private const val URL = "https://widget.weloop.io/home?appGuid="
     }
 }
