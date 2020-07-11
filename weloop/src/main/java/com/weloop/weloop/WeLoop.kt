@@ -1,5 +1,6 @@
 package com.weloop.weloop
 
+import android.app.Activity
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
@@ -14,7 +15,6 @@ import android.view.Gravity
 import android.view.View
 import android.view.Window
 import android.webkit.WebView
-import android.webkit.WebViewClient
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -72,7 +72,6 @@ class WeLoop : WebView {
         ShakeDetector.create(context, OnShakeListener {
             invoke()
         })
-
         this.floatingWidget.setOnClickListener {
             invoke()
         }
@@ -85,7 +84,7 @@ class WeLoop : WebView {
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .doOnError{
-
+                Toast.makeText(context, "error during initialization", Toast.LENGTH_SHORT).show()
             }
             .subscribe ({
                 if (it.widgetPrimaryColor != null) {
