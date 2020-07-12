@@ -4,14 +4,43 @@ apply plugin: 'maven-publish'
 group 'com.github.WeLoopTeam'
 version '1.0.5'
 
+project.ext {
+    mavGitUrl = 'https://github.com/WeLoopTeam/WeLoop-Android.git'
+    mavProjectName = 'WeLoop'
+    mavLibraryLicenses = ["MIT License":'https://github.com/WeLoopTeam/WeLoop-Android/blob/master/LICENSE']
+    mavLibraryDescription = "WeLoop for Android"
+    mavPublishToMavenLocal = true
+    mavSiteUrl = 'https://github.com/WeLoopTeam/WeLoop-Android'
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.srcDirs
+}
+
+//task javadoc(type: Javadoc) {
+//    source = android.sourceSets.main.java.srcDirs
+//    classpath = project.files(android.getBootClasspath().join(''))
+//}
+//
+//task javadocJar(type: Jar, dependsOn: javadoc) {
+//    classifier = 'javadoc'
+//    from javadoc.destinationDir
+//}
+
+artifacts {
+ //   archives javadocJar
+    archives sourcesJar
+}
+
 publishing {
     publications {
         Production(MavenPublication) {
-            artifact("$buildDir/outputs/aar/app-release.aar")
-            groupId
+            artifact sourcesJar
+            artifact("$buildDir/outputs/aar/weloop-release.aar")
+            groupId 'com.github.WeLoopTeam'
             artifactId 'weloop'
             version this.version
-
             pom.withXml {
                 def dependenciesNode = asNode().appendNode('dependencies')
 
@@ -30,35 +59,6 @@ publishing {
     }
 }
 
-project.ext {
-    mavGitUrl = 'https://github.com/WeLoopTeam/WeLoop-Android.git'
-    mavProjectName = 'WeLoop'
-    mavLibraryLicenses = ["MIT License":'https://github.com/WeLoopTeam/WeLoop-Android/blob/master/LICENSE']
-    mavLibraryDescription = "WeLoop for Android"
-    mavPublishToMavenLocal = true
-    mavSiteUrl = 'https://github.com/WeLoopTeam/WeLoop-Android'
-}
-
-//task sourcesJar(type: Jar) {
-//    classifier = 'sources'
-//    from android.sourceSets.main.java.srcDirs
-//}
-//
-//task javadoc(type: Javadoc) {
-//    source = android.sourceSets.main.java.srcDirs
-//    classpath = project.files(android.getBootClasspath().join(''))
-//}
-//
-//task javadocJar(type: Jar, dependsOn: javadoc) {
-//    classifier = 'javadoc'
-//    from javadoc.destinationDir
-//}
-//
-//artifacts {
-//    archives javadocJar
-//    archives sourcesJar
-//}
-
 
 def properties = new Properties()
 properties.load(new FileInputStream("local.properties"))
@@ -75,6 +75,7 @@ bintray {
         description = "WeLoop for Android"
         publicDownloadNumbers = false
         licenses = ['MIT']
+        override = true
         vcsUrl = 'https://github.com/WeLoopTeam/WeLoop-Android.git'
         version {
             name = this.version

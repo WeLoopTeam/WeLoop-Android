@@ -196,7 +196,7 @@ import javax.crypto.spec.SecretKeySpec
 
             // Iterations
             for (i in 1 until iterations) {
-                block = hasher.digest(block)
+                block = hasher.digest(block!!)
                 hasher.reset()
             }
             System.arraycopy(
