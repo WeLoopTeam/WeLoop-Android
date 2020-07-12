@@ -24,6 +24,7 @@ Add it in your root build.gradle (project level) at the end of repositories:
 
 Add the dependency in your build.gradle (app level)
 ```gradle
+implementation 'com.github.tbouron.shakedetector:library:1.0.0@aar'
 implementation 'com.github.WeLoopTeam:weloop:1.0.6'
 ```
 
