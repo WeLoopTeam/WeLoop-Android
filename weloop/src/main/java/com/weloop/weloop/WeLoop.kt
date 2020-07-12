@@ -278,7 +278,7 @@ class WeLoop : WebView {
     fun authenticateUser(user: User) {
         if (android.util.Patterns.EMAIL_ADDRESS.matcher(user.email).matches()) {
             val str = user.email + "|" + user.firstName + "|" + user.lastName + "|" + user.id
-            token = AES256Cryptor.encrypt(str, apiKey)
+            token = AES256Cryptor.encrypt(str, apiKey)!!
         } else {
             Toast.makeText(context, "email incorrecte", Toast.LENGTH_LONG).show()
         }
