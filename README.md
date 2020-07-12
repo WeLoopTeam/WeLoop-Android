@@ -64,13 +64,23 @@ Java:
 ```java
 private String PICKFILE_REQUEST_CODE = 100;
 private ValueCallback<Uri[]> uploadMessage;
-Weloop weloopWebView = findViewById(R.id.webview);
+private WeLoop weloopWebView;
 ```
 kotlin:
 ```kotlin
 val PICKFILE_REQUEST_CODE = 100
 var uploadMessage: ValueCallback<Array<Uri>>? = null
-var weloopWebview = webview
+private lateinir var weloopWebview: WeLoop
+```
+
+Init your weloopWebview:
+Kotlin:
+```kotlin
+weLoopWebView = webview
+```
+Java
+```Java
+weloopWebView = findViewById(R.id.webview)
 ```
 Do not forget to destroy/stop/start your weloop var
 Kotlin:
