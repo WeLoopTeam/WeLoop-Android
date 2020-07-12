@@ -73,7 +73,7 @@ var uploadMessage: ValueCallback<Array<Uri>>? = null
 private lateinir var weloopWebview: WeLoop
 ```
 
-Init your weloopWebview:
+Init your weloopWebview:  
 Kotlin:
 ```kotlin
 weLoopWebView = webview
