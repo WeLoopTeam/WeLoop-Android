@@ -208,11 +208,12 @@ weLoopWebView.addListener(object : WeLoop.NotificationListener{
 ```
 Java:
 ```java
-weLoopWebView.addListener(object : WeLoop.NotificationListener{
-            override fun getNotification(number: Int){
+weloopWebView.addListener(new WeLoop.NotificationListener(){
+            @Override
+            public void getNotification(int number){
                 //doSomeStuff
             }
-        })
+        });
 ```
 
 ### Invocation method
