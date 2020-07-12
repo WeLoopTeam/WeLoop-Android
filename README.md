@@ -2,7 +2,7 @@
 
 ## Requirements
 
-minSdkVersion 23
+minSdkVersion 21
 
 ## Setup
 
