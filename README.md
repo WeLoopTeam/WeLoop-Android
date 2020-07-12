@@ -1,4 +1,4 @@
-[![](https://jitpack.io/v/WeLoopTeam/WeLoop-Android.svg)](https://jitpack.io/#WeLoopTeam/WeLoop-Android)
+[ ![Download](https://api.bintray.com/packages/paseuht/WeLoop/WeLoop/images/download.svg?version=1.0.6) ](https://bintray.com/paseuht/WeLoop/WeLoop/1.0.6/link)
 
 ## Requirements
 
@@ -9,16 +9,22 @@ minSdkVersion 23
 ### Gradle
 Add it in your root build.gradle (project level) at the end of repositories:
 ```gradle
+    buildscript {
+    	repositories {
+        jcenter()//add jcenter()
+    	}
+    }
+    
     allprojects {
-		repositories {
-			maven { url 'https://jitpack.io' }
-		}
-	}
+    repositories {
+        jcenter() //add jcenter()
+    }
+}
 ```
 
 Add the dependency in your build.gradle (app level)
 ```gradle
-implementation 'com.github.WeLoopTeam:WeLoop-Android:1.0.2'
+implementation 'com.github.WeLoopTeam:weloop:1.0.6'
 ```
 
 ### Updating the manifest
@@ -52,13 +58,17 @@ fab :
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 ```
-Init your WeLoop var :  
+Init your WeLoop var and uploadMessage (for attachment) :  
 Java:
 ```java
-Weloop weloopWebView = findViewById(R.id.webview)
+private String PICKFILE_REQUEST_CODE = 100;
+private ValueCallback<Uri[]> uploadMessage;
+Weloop weloopWebView = findViewById(R.id.webview);
 ```
 kotlin:
 ```kotlin
+val PICKFILE_REQUEST_CODE = 100
+var uploadMessage: ValueCallback<Array<Uri>>? = null
 var weloopWebview = webview
 ```
 Do not forget to destroy/stop/start your weloop var
@@ -117,6 +127,73 @@ weLoopWebView.authenticateUser(User("3","toto@gmail.com","tata","titi"))
 
 ```kotlin
 weLoopWebView.initialize("YOUR_PROJECT_GUID", fab, this.getWindow())// from a fragment : activity.getWindow()
+```
+3. Add webChromeClient (for attachment)
+Kotlin:
+```kotlin
+weLoopWebView.webChromeClient = object:WebChromeClient() {
+            override fun onShowFileChooser(webView: WebView, filePathCallback:ValueCallback<Array<Uri>>, fileChooserParams:FileChooserParams):Boolean {
+                val intent = Intent(Intent.ACTION_GET_CONTENT)
+                if (uploadMessage != null){
+                    uploadMessage!!.onReceiveValue(null)
+                    uploadMessage = null
+                }
+                uploadMessage = filePathCallback
+                intent.setType("*/*")
+                startActivityForResult(intent, PICKFILE_REQUEST_CODE)
+                return true
+            }
+        }
+```
+
+Java:
+```Java
+	@Override
+    	protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        weloopWebView.setWebChromeClient(new WebChromeClient() {
+            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams
+                    fileChooserParams) {
+                // make sure there is no existing message
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                if (uploadMessage != null){
+                    uploadMessage.onReceiveValue(null);
+                    uploadMessage = null;
+                }
+                uploadMessage = filePathCallback;
+                intent.setType("*/*");
+                startActivityForResult(intent, PICKFILE_REQUEST_CODE);
+
+                return true;
+            }
+        });
+    }
+```
+
+4. Handle the data in onActivityResult
+```kotlin
+override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == PICKFILE_REQUEST_CODE) {
+            if (uploadMessage == null) return
+            uploadMessage?.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data));
+            uploadMessage = null
+        }
+    }
+```
+
+Java:
+```Java
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data){
+	super.onActivityResult(requestCode, resultCode, data)
+	if (requestCode == PICKFILE_REQUEST_CODE) {
+            if (uploadMessage == null) return
+            uploadMessage.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data));
+            uploadMessage = null
+        }
+    }
 ```
 
 ### Listener
