@@ -1,11 +1,16 @@
 package com.weloop.sample
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.webkit.ValueCallback
+import android.webkit.WebChromeClient
+import android.webkit.WebView
 import android.widget.Toast
 import com.google.android.material.tabs.TabLayout
 import com.weloop.weloop.WeLoop
@@ -15,19 +20,34 @@ import kotlinx.android.synthetic.main.activity_main.*
 class MainActivity : AppCompatActivity() {
 
     private lateinit var weLoopWebView: WeLoop
+    var uploadMessage: ValueCallback<Array<Uri>>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         weLoopWebView = webview
-        weLoopWebView.initialize("742382b0-531e-11ea-8733-0fb1656485aa", fab, window)
-        weLoopWebView.authenticateUser(User(id = "3", email = "toto@gmail.com", firstName = "tata", lastName = "titi"))
+        weLoopWebView.initialize("e19340c0-b453-11e9-8113-1d4bacf0614e", fab, window)
+        weLoopWebView.authenticateUser(User(id = "3", email = "john.doe@email.fr", firstName = "John", lastName = "Doe"))
         weLoopWebView.addListener(object : WeLoop.NotificationListener{
             override fun getNotification(number: Int){
                 //doSomeStuff
                 Log.e("Notif", number.toString())
             }
         })
+        weLoopWebView.webChromeClient = object:WebChromeClient() {
+            override fun onShowFileChooser(webView: WebView, filePathCallback:ValueCallback<Array<Uri>>, fileChooserParams:FileChooserParams):Boolean {
+                val intent = Intent(Intent.ACTION_GET_CONTENT)
+                if (uploadMessage != null){
+                    uploadMessage!!.onReceiveValue(null)
+                    uploadMessage = null
+                }
+                uploadMessage = filePathCallback
+                intent.setType("*/*")
+                val PICKFILE_REQUEST_CODE = 100
+                startActivityForResult(intent, PICKFILE_REQUEST_CODE)
+                return true
+            }
+        }
         initListeners()
         askForPermissions()
         tabs.getTabAt(2)!!.select()
@@ -65,8 +85,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun askForPermissions() {
         if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 36)
+            != PackageManager.PERMISSION_GRANTED ||
+                checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE), 36)
         }
     }
 
@@ -83,6 +106,15 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "L'application a besoin des permissions pour fonctionner", Toast.LENGTH_LONG).show()
             }
 
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 100) {
+            if (uploadMessage == null) return
+            uploadMessage?.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data));
+            uploadMessage = null
         }
     }
 
