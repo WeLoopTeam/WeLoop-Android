@@ -31,7 +31,6 @@ class MainActivity : AppCompatActivity() {
         weLoopWebView.addListener(object : WeLoop.NotificationListener{
             override fun getNotification(number: Int){
                 //doSomeStuff
-                Log.e("Notif", number.toString())
             }
         })
         weLoopWebView.webChromeClient = object:WebChromeClient() {
