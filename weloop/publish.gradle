@@ -2,7 +2,7 @@ apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven-publish'
 
 group 'com.github.WeLoopTeam'
-version '1.0.6'
+version '1.0.7'
 
 project.ext {
     mavGitUrl = 'https://github.com/WeLoopTeam/WeLoop-Android.git'
