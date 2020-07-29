@@ -1,16 +1,15 @@
 package com.weloop.weloop
 
-import android.app.Activity
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.AsyncTask
+import android.os.Build
 import android.os.Environment
 import android.util.AttributeSet
 import android.util.Base64
-import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.Window
@@ -18,6 +17,7 @@ import android.webkit.WebView
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.content.ContextCompat.getColor
 import cn.pedant.SweetAlert.SweetAlertDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
@@ -32,7 +32,6 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import java.io.ByteArrayOutputStream
 import java.util.*
-import kotlin.concurrent.schedule
 
 
 /* Created by *-----* Alexandre Thauvin *-----* */
@@ -52,8 +51,9 @@ class WeLoop : WebView {
     private var shouldShowDialog = false
     private lateinit var notificationListener: NotificationListener
 
-    constructor(context: Context) : super(context)
-    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
+    constructor(context: Context) : super(context.applicationContext)
+    constructor(context: Context, attrs: AttributeSet?) : super(context.applicationContext, attrs)
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int): super(context.applicationContext, attrs, defStyleAttr)
 
     init {
         visibility = View.GONE
@@ -96,8 +96,14 @@ class WeLoop : WebView {
                         )
                     )
                 } else {
-                    this.floatingWidget.backgroundTintList =
-                        ColorStateList.valueOf(context.getColor(R.color.defaultColorWidget))
+                    if (Build.VERSION.SDK_INT in 21..22){
+                        this.floatingWidget.backgroundTintList =
+                            ColorStateList.valueOf(getColor(context, R.color.defaultColorWidget))
+                    }
+                    else {
+                        this.floatingWidget.backgroundTintList =
+                            ColorStateList.valueOf(context.getColor(R.color.defaultColorWidget))
+                    }
                 }
                 if (it.widgetIcon != null) {
                     Glide.with(context)

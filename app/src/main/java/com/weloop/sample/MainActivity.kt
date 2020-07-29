@@ -4,7 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -12,6 +12,7 @@ import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.tabs.TabLayout
 import com.weloop.weloop.WeLoop
 import com.weloop.weloop.model.User
@@ -31,6 +32,7 @@ class MainActivity : AppCompatActivity() {
         weLoopWebView.addListener(object : WeLoop.NotificationListener{
             override fun getNotification(number: Int){
                 //doSomeStuff
+                Log.e("NOTIF:", "$number")
             }
         })
         weLoopWebView.webChromeClient = object:WebChromeClient() {
@@ -48,7 +50,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
         initListeners()
-        askForPermissions()
+        if (Build.VERSION.SDK_INT >= 23){
+            askForPermissions()
+        }
         tabs.getTabAt(2)!!.select()
     }
 
