@@ -2,6 +2,7 @@ package com.weloop.weloop
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.Drawable
@@ -36,7 +37,7 @@ import java.util.*
 
 /* Created by *-----* Alexandre Thauvin *-----* */
 
-class WeLoop : WebView {
+class WeLoop @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0): WebView(context.createConfigurationContext(Configuration()), attrs, defStyle) {
     private var currentInvocationMethod = 0
     private var apiKey: String = ""
     private lateinit var floatingWidget: FloatingWidget
@@ -50,10 +51,11 @@ class WeLoop : WebView {
     private lateinit var dialog: SweetAlertDialog
     private var shouldShowDialog = false
     private lateinit var notificationListener: NotificationListener
+    private lateinit var mContext: Context
 
-    constructor(context: Context) : super(context.applicationContext)
-    constructor(context: Context, attrs: AttributeSet?) : super(context.applicationContext, attrs)
-    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int): super(context.applicationContext, attrs, defStyleAttr)
+    /*constructor(context: Context) : super(context)
+    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int): super(context, attrs, defStyleAttr)*/
 
     init {
         visibility = View.GONE
@@ -62,7 +64,9 @@ class WeLoop : WebView {
         settings.javaScriptEnabled = true
     }
 
-    fun initialize(apiKey: String, floatingWidget: FloatingWidget, window: Window) {
+    fun initialize(apiKey: String, floatingWidget: FloatingWidget, window: Window, context: Context) {
+        //this.dialog.getWindow()?.setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT)
+        mContext = context
         this.floatingWidget = floatingWidget
         this.floatingWidget.visibility = View.GONE
         this.window = window
@@ -241,7 +245,7 @@ class WeLoop : WebView {
         TakeScreenshotTask(this, takeScreenshot()!!).execute()
         visibility = View.VISIBLE
         if (shouldShowDialog) {
-            dialog = SweetAlertDialog(context, SweetAlertDialog.PROGRESS_TYPE)
+            dialog = SweetAlertDialog(mContext, SweetAlertDialog.PROGRESS_TYPE)
             dialog.setCancelable(true)
             dialog.show()
         }
