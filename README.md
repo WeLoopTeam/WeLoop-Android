@@ -1,4 +1,4 @@
-[ ![Download](https://api.bintray.com/packages/paseuht/WeLoop/WeLoop/images/download.svg?version=1.0.7) ](https://bintray.com/paseuht/WeLoop/WeLoop/1.0.7/link)
+[ ![Download](https://api.bintray.com/packages/paseuht/WeLoop/WeLoop/images/download.svg?version=1.0.7) ](https://bintray.com/paseuht/WeLoop/WeLoop/1.0.8/link)
 
 ## Requirements
 
@@ -24,8 +24,7 @@ Add it in your root build.gradle (project level) at the end of repositories:
 
 Add the dependency in your build.gradle (app level)
 ```gradle
-implementation 'com.github.tbouron.shakedetector:library:1.0.0@aar'
-implementation 'com.github.WeLoopTeam:weloop:1.0.7'
+implementation 'com.github.WeLoopTeam:weloop:1.0.8'
 ```
 
 ### Updating the manifest
@@ -82,41 +81,7 @@ Java
 ```Java
 weloopWebView = findViewById(R.id.webview)
 ```
-Do not forget to destroy/stop/start your weloop var
-Kotlin:
-```kotlin
-    override fun onStart() {
-        super.onStart()
-        weLoopWebView.resumeWeLoop()
-    }
-    
-    override fun onDestroy() {
-        super.onDestroy()
-        weLoopWebView.destroyWeLoop()
-    }
 
-    override fun onStop() {
-        super.onStop()
-        weLoopWebView.stopWeLoop()
-    }
-```
-Java:
-```java
-    void onStart() {
-        super.onStart()
-        weLoopWebView.resumeWeLoop()
-    }
-    
-    void onDestroy() {
-        super.onDestroy()
-        weLoopWebView.destroyWeLoop()
-    }
-
-    void fun onStop() {
-        super.onStop()
-        weLoopWebView.stopWeLoop()
-    }
-```
 In order to invoke WeLoop you have two options. 
 
 1. You provide the user identity. Simply provide your project key, and identity the current user by calling `authenticateUser`.
@@ -239,13 +204,7 @@ weLoopWebView.setInvocationMethod(WeLoop.FAB)
 
 Customisation options for the button (color, icon, placement) can be done inside your WeLoop project settings.
 
-2. Shake Gesture
-
-```kotlin
-weLoopWebView.setInvocationMethod(WeLoop.SHAKE_GESTURE)
-```
-
-3. Manual
+2. Manual
 
 ```kotlin 
 weLoopWebView.setInvocationMethod(WeLoop.MANUAL)
