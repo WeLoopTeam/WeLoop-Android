@@ -1,4 +1,4 @@
-[ ![Download](https://api.bintray.com/packages/paseuht/WeLoop/WeLoop/images/download.svg?version=1.0.7) ](https://bintray.com/paseuht/WeLoop/WeLoop/1.0.8/link)
+[ ![Download](https://api.bintray.com/packages/paseuht/WeLoop/WeLoop/images/download.svg?version=1.0.8) ](https://bintray.com/paseuht/WeLoop/WeLoop/1.0.8/link)
 
 ## Requirements
 
