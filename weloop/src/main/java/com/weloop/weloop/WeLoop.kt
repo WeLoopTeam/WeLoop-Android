@@ -23,8 +23,6 @@ import cn.pedant.SweetAlert.SweetAlertDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
-import com.github.tbouron.shakedetector.library.ShakeDetector
-import com.github.tbouron.shakedetector.library.ShakeDetector.OnShakeListener
 import com.weloop.weloop.model.User
 import com.weloop.weloop.network.ApiServiceImp
 import com.weloop.weloop.utils.AES256Cryptor
@@ -73,9 +71,6 @@ class WeLoop @JvmOverloads constructor(context: Context, attrs: AttributeSet? = 
         this.apiKey = apiKey
         initWebAppListener()
         addJavascriptInterface(webViewInterface, "Android")
-        ShakeDetector.create(context, OnShakeListener {
-            invoke()
-        })
         this.floatingWidget.setOnClickListener {
             invoke()
         }
@@ -160,19 +155,11 @@ class WeLoop @JvmOverloads constructor(context: Context, attrs: AttributeSet? = 
                 if (::floatingWidget.isInitialized && isPreferencesLoaded) {
                     floatingWidget.visibility = View.VISIBLE
                 }
-                ShakeDetector.stop()
-            }
-            SHAKE_GESTURE -> {
-                if (::floatingWidget.isInitialized) {
-                    floatingWidget.visibility = View.GONE
-                }
-                ShakeDetector.start()
             }
             else -> {
                 if (::floatingWidget.isInitialized) {
                     floatingWidget.visibility = View.GONE
                 }
-                ShakeDetector.stop()
             }
         }
     }
@@ -268,18 +255,6 @@ class WeLoop @JvmOverloads constructor(context: Context, attrs: AttributeSet? = 
         return null
     }
 
-    fun resumeWeLoop() {
-        ShakeDetector.start()
-    }
-
-    fun stopWeLoop() {
-        ShakeDetector.stop()
-    }
-
-    fun destroyWeLoop() {
-        ShakeDetector.destroy()
-    }
-
     private fun loadHome() {
         this.post { loadUrl(URL + apiKey); shouldShowDialog = true }
     }
@@ -309,8 +284,7 @@ class WeLoop @JvmOverloads constructor(context: Context, attrs: AttributeSet? = 
 
     companion object {
         const val FAB = 0
-        const val SHAKE_GESTURE = 1
-        const val MANUAL = 2
+        const val MANUAL = 1
         private const val URL = "https://widget.weloop.io/home?appGuid="
     }
 }
