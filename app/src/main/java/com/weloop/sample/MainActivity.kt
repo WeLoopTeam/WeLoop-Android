@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         weLoopWebView = webview
         weLoopWebView.initialize("e19340c0-b453-11e9-8113-1d4bacf0614e", fab, window, this)
-        weLoopWebView.authenticateUser(User(id = "3", email = "john.doe@email.fr", firstName = "John", lastName = "Doe"))
+        weLoopWebView.authenticateUser(User(id = "4", email = "toto@email.fr", firstName = "John", lastName = "Doe"))
         weLoopWebView.addListener(object : WeLoop.NotificationListener{
             override fun getNotification(number: Int){
                 //doSomeStuff
@@ -53,12 +53,7 @@ class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= 23){
             askForPermissions()
         }
-        tabs.getTabAt(2)!!.select()
-    }
-
-    override fun onStart() {
-        super.onStart()
-        weLoopWebView.resumeWeLoop()
+        tabs.getTabAt(1)!!.select()
     }
 
     private fun initListeners(){
@@ -75,8 +70,7 @@ class MainActivity : AppCompatActivity() {
             override fun onTabSelected(p0: TabLayout.Tab?) {
                 when (p0!!.position) {
                     0 -> weLoopWebView.setInvocationMethod(WeLoop.MANUAL)
-                    1 -> weLoopWebView.setInvocationMethod(WeLoop.SHAKE_GESTURE)
-                    2 -> weLoopWebView.setInvocationMethod(WeLoop.FAB)
+                    1 -> weLoopWebView.setInvocationMethod(WeLoop.FAB)
                 }
             }
 
@@ -129,15 +123,5 @@ class MainActivity : AppCompatActivity() {
         else {
             super.onBackPressed()
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        weLoopWebView.destroyWeLoop()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        weLoopWebView.stopWeLoop()
     }
 }
