@@ -1,4 +1,4 @@
-[ ![Download](https://api.bintray.com/packages/paseuht/WeLoop/WeLoop/images/download.svg?version=1.0.8) ](https://bintray.com/paseuht/WeLoop/WeLoop/1.0.8/link)
+[ ![Download](https://api.bintray.com/packages/paseuht/WeLoop/WeLoop/images/download.svg?version=1.0.9) ](https://bintray.com/paseuht/WeLoop/WeLoop/1.0.9/link)
 
 ## Requirements
 
@@ -24,7 +24,7 @@ Add it in your root build.gradle (project level) at the end of repositories:
 
 Add the dependency in your build.gradle (app level)
 ```gradle
-implementation 'com.github.WeLoopTeam:weloop:1.0.8'
+implementation 'com.github.WeLoopTeam:weloop:1.0.9'
 ```
 
 ### Updating the manifest
@@ -58,6 +58,28 @@ fab :
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 ```
+if your app has a minSDK < 23 ; Put this in the parent activity of the weloop webview:
+Java:
+```java
+@Override
+    public void applyOverrideConfiguration(Configuration overrideConfiguration) {
+        if (Build.VERSION.SDK_INT < 23) {
+            return;
+        }
+        super.applyOverrideConfiguration(overrideConfiguration);
+    }
+```
+kotlin:
+```kotlin
+override fun applyOverrideConfiguration(overrideConfiguration: Configuration) {
+        if (Build.VERSION.SDK_INT in 21..22) {
+            return
+        }
+        super.applyOverrideConfiguration(overrideConfiguration)
+}
+```
+
+
 Init your WeLoop var and uploadMessage (for attachment) :  
 Java:
 ```java
