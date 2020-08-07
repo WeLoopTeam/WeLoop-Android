@@ -2,7 +2,6 @@ package com.weloop.weloop
 
 import android.content.Context
 import android.content.res.ColorStateList
-import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.Drawable
@@ -35,7 +34,7 @@ import java.util.*
 
 /* Created by *-----* Alexandre Thauvin *-----* */
 
-class WeLoop @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0): WebView(context.createConfigurationContext(Configuration()), attrs, defStyle) {
+class WeLoop : WebView{
     private var currentInvocationMethod = 0
     private var apiKey: String = ""
     private lateinit var floatingWidget: FloatingWidget
@@ -51,11 +50,13 @@ class WeLoop @JvmOverloads constructor(context: Context, attrs: AttributeSet? = 
     private lateinit var notificationListener: NotificationListener
     private lateinit var mContext: Context
 
-    /*constructor(context: Context) : super(context)
+    constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
-    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int): super(context, attrs, defStyleAttr)*/
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int): super(context, attrs, defStyleAttr)
 
     init {
+        isFocusableInTouchMode = true
+        isFocusable = true
         visibility = View.GONE
         settings.domStorageEnabled = true
         settings.javaScriptCanOpenWindowsAutomatically = true
