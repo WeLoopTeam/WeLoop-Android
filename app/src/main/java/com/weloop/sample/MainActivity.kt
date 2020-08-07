@@ -3,6 +3,7 @@ package com.weloop.sample
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -54,6 +55,13 @@ class MainActivity : AppCompatActivity() {
             askForPermissions()
         }
         tabs.getTabAt(1)!!.select()
+    }
+
+    override fun applyOverrideConfiguration(overrideConfiguration: Configuration) {
+        if (Build.VERSION.SDK_INT in 21..22) {
+            return
+        }
+        super.applyOverrideConfiguration(overrideConfiguration)
     }
 
     private fun initListeners(){
