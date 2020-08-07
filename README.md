@@ -114,13 +114,13 @@ In order to invoke WeLoop you have two options.
 Kotlin:
 ```kotlin
 //fab is the FloatingWeidget view
-weLoopWebView.initialize("YOUR_PROJECT_GUID", fab, this.window, this)// from a fragment : activity.window
+weLoopWebView.initialize("YOUR_PROJECT_GUID", fab, this.window, this)// from a fragment : activity.window // this is an activity context
 weLoopWebView.authenticateUser(User(id = "3", email = "toto@gmail.com", firstName = "tata", lastName = "titi"))
 ```
 Java:
 ```java
 //fab is the FloatingWeidget view
-weLoopWebView.initialize("YOUR_PROJECT_GUID", fab, this.getWindow())// from a fragment : activity.getWindow()
+weLoopWebView.initialize("YOUR_PROJECT_GUID", fab, this.getWindow(), this)// from a fragment : activity.getWindow()// this is an activity context
 weLoopWebView.authenticateUser(User("3","toto@gmail.com","tata","titi"))
 ```
 
