@@ -58,7 +58,8 @@ fab :
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 ```
-if your app has a minSDK < 23 ; Put this in the parent activity of the weloop webview:
+if your app has a minSDK < 23 ; Put this in the parent activity of the weloop webview:  
+
 Java:
 ```java
 @Override
