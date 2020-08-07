@@ -58,7 +58,7 @@ fab :
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 ```
-###minSDK < 23
+### minSDK < 23
 
 If your app minSDK < 23 ; Put this in the parent activity of the weloop webview:  
 
@@ -83,7 +83,7 @@ override fun applyOverrideConfiguration(overrideConfiguration: Configuration) {
 ```
 
 
-###Init your WeLoop var and uploadMessage (for attachment) :  
+### Init your WeLoop var and uploadMessage (for attachment) :  
 Java:
 ```java
 private String PICKFILE_REQUEST_CODE = 100;
@@ -97,7 +97,7 @@ var uploadMessage: ValueCallback<Array<Uri>>? = null
 private lateinir var weloopWebview: WeLoop
 ```
 
-###Init your weloopWebview:  
+### Init your weloopWebview:  
 Kotlin:
 ```kotlin
 weLoopWebView = webview
