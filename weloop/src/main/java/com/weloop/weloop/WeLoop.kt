@@ -64,7 +64,6 @@ class WeLoop : WebView{
     }
 
     fun initialize(apiKey: String, floatingWidget: FloatingWidget, window: Window, context: Context) {
-        //this.dialog.getWindow()?.setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT)
         mContext = context
         this.floatingWidget = floatingWidget
         this.floatingWidget.visibility = View.GONE
