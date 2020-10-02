@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         weLoopWebView = webview
-        weLoopWebView.initialize("e19340c0-b453-11e9-8113-1d4bacf0614e", fab, window, this)
+        weLoopWebView.initialize("e19340c0-b453-11e9-8113-1d4bacf0614e", fab, window, this, MainActivity::class.java.name)
         weLoopWebView.authenticateUser(User(id = "4", email = "toto@email.fr", firstName = "John", lastName = "Doe"))
         weLoopWebView.addListener(object : WeLoop.NotificationListener{
             override fun getNotification(number: Int){

@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Environment
 import android.util.AttributeSet
 import android.util.Base64
+import android.util.DisplayMetrics
 import android.view.Gravity
 import android.view.View
 import android.view.Window
@@ -22,6 +23,8 @@ import cn.pedant.SweetAlert.SweetAlertDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
+import com.google.gson.Gson
+import com.weloop.weloop.model.DeviceInfo
 import com.weloop.weloop.model.User
 import com.weloop.weloop.network.ApiServiceImp
 import com.weloop.weloop.utils.AES256Cryptor
@@ -49,10 +52,15 @@ class WeLoop : WebView{
     private var shouldShowDialog = false
     private lateinit var notificationListener: NotificationListener
     private lateinit var mContext: Context
+    private var deviceInfo = DeviceInfo()
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
-    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int): super(context, attrs, defStyleAttr)
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int): super(
+        context,
+        attrs,
+        defStyleAttr
+    )
 
     init {
         isFocusableInTouchMode = true
@@ -63,8 +71,24 @@ class WeLoop : WebView{
         settings.javaScriptEnabled = true
     }
 
-    fun initialize(apiKey: String, floatingWidget: FloatingWidget, window: Window, context: Context) {
+    fun initialize(
+        apiKey: String,
+        floatingWidget: FloatingWidget,
+        window: Window,
+        context: Context,
+        weloopLocation: String
+    ) {
         mContext = context
+
+        val displayMetrics = DisplayMetrics()
+        window.windowManager.defaultDisplay.getMetrics(displayMetrics)
+        val height: Int = displayMetrics.heightPixels
+        val width: Int = displayMetrics.widthPixels
+
+        deviceInfo.screenHeight = height.toString()
+        deviceInfo.screenWidth = width.toString()
+        deviceInfo.weloopLocation = weloopLocation
+
         this.floatingWidget = floatingWidget
         this.floatingWidget.visibility = View.GONE
         this.window = window
@@ -82,10 +106,10 @@ class WeLoop : WebView{
         disposable.add(ApiServiceImp.getWidgetPreferences(this.apiKey)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .doOnError{
+            .doOnError {
                 Toast.makeText(context, "error during initialization", Toast.LENGTH_SHORT).show()
             }
-            .subscribe ({
+            .subscribe({
                 if (it.widgetPrimaryColor != null) {
                     this.floatingWidget.backgroundTintList = ColorStateList.valueOf(
                         Color.rgb(
@@ -95,11 +119,15 @@ class WeLoop : WebView{
                         )
                     )
                 } else {
-                    if (Build.VERSION.SDK_INT in 21..22){
+                    if (Build.VERSION.SDK_INT in 21..22) {
                         this.floatingWidget.backgroundTintList =
-                            ColorStateList.valueOf(getColor(context, R.color.defaultColorWidget))
-                    }
-                    else {
+                            ColorStateList.valueOf(
+                                getColor(
+                                    context,
+                                    R.color.defaultColorWidget
+                                )
+                            )
+                    } else {
                         this.floatingWidget.backgroundTintList =
                             ColorStateList.valueOf(context.getColor(R.color.defaultColorWidget))
                     }
@@ -167,13 +195,19 @@ class WeLoop : WebView{
     private fun initWebAppListener() {
         webViewInterface.addListener(object : WebAppInterface.WebAppListener {
             override fun closePanel() {
-                this@WeLoop.post { visibility = View.GONE; floatingWidget.visibility = View.VISIBLE }
+                this@WeLoop.post {
+                    visibility = View.GONE; floatingWidget.visibility = View.VISIBLE
+                }
             }
 
             override fun getCapture() {
                 if (screenshot.isNotEmpty()) {
-                        this@WeLoop.post { loadUrl("javascript:getCapture('data:im      90" +
-                                "; age/jpg;base64, ${screenshot}')"); screenShotAsked = false }
+                    this@WeLoop.post {
+                        loadUrl(
+                            "javascript:getCapture('data:im      90" +
+                                    "; age/jpg;base64, ${screenshot}')"
+                        ); screenShotAsked = false
+                    }
                 } else {
                     screenShotAsked = true
                 }
@@ -182,8 +216,7 @@ class WeLoop : WebView{
             override fun getCurrentUser() {
                 if (this@WeLoop::token.isInitialized) {
                     this@WeLoop.post { loadUrl("javascript:GetCurrentUser({ appGuid: '$apiKey', token: '$token'})") }
-                }
-                else {
+                } else {
                     this@WeLoop.post { loadUrl("javascript:GetCurrentUser({ appGuid: '$apiKey'})") }
                 }
             }
@@ -202,6 +235,11 @@ class WeLoop : WebView{
                         dialog.dismiss()
                     }
                 }
+            }
+
+            override fun getDeviceInfo() {
+                val json = Gson().toJson(deviceInfo)
+                this@WeLoop.post { loadUrl("javascript:getDeviceInfo({ value: '$json'})") }
             }
         })
     }
@@ -264,7 +302,7 @@ class WeLoop : WebView{
             val str = user.email + "|" + user.firstName + "|" + user.lastName + "|" + user.id
             token = AES256Cryptor.encrypt(str, apiKey)!!
         } else {
-            Toast.makeText(context, "email incorrecte", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "email incorrect", Toast.LENGTH_LONG).show()
         }
     }
 
