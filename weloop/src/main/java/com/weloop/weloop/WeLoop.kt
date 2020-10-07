@@ -76,7 +76,7 @@ class WeLoop : WebView{
         floatingWidget: FloatingWidget,
         window: Window,
         context: Context,
-        weloopLocation: String
+        weloopLocation: String?
     ) {
         mContext = context
 
@@ -87,6 +87,12 @@ class WeLoop : WebView{
 
         deviceInfo.screenHeight = height.toString()
         deviceInfo.screenWidth = width.toString()
+        deviceInfo.weloopLocation = if (deviceInfo.weloopLocation.isNullOrEmpty()){
+            "Not found"
+        }
+        else {
+            deviceInfo.weloopLocation
+        }
         deviceInfo.weloopLocation = weloopLocation
 
         this.floatingWidget = floatingWidget

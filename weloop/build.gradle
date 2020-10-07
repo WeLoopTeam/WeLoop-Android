@@ -16,15 +16,15 @@ repositories {
 group = "com.github.WeLoopTeam"
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
     buildToolsVersion "29.0.3"
 
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 29
-        versionCode 6
-        versionName "1.0.9"
+        targetSdkVersion 30
+        versionCode 7
+        versionName "1.1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
