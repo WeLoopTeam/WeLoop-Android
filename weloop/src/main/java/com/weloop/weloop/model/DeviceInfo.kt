@@ -12,4 +12,4 @@ data class DeviceInfo(
     val productOverall: String = Build.PRODUCT,
     var screenHeight: String = "",
     var screenWidth: String = "",
-    var weloopLocation: String = "")
+    var weloopLocation: String? = "")

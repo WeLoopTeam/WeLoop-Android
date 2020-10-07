@@ -11,6 +11,7 @@ import android.webkit.WebView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.weloop.weloop.FloatingWidget;
 import com.weloop.weloop.WeLoop;
 
 class MainActivityJava extends AppCompatActivity {
@@ -20,6 +21,7 @@ class MainActivityJava extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        weloopWebView.initialize("", (FloatingWidget) findViewById(R.id.fab), getWindow(), this, null);
         MainActivityJava.class.getName();
         weloopWebView.setWebChromeClient(new WebChromeClient() {
             public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams
