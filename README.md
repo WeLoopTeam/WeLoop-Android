@@ -1,4 +1,4 @@
-[ ![Download](https://api.bintray.com/packages/paseuht/WeLoop/WeLoop/images/download.svg?version=1.1.0) ](https://bintray.com/paseuht/WeLoop/WeLoop/1.1.0/link)
+[ ![Download](https://api.bintray.com/packages/paseuht/WeLoop/WeLoop/images/download.svg?version=1.1.1) ](https://bintray.com/paseuht/WeLoop/WeLoop/1.1.1/link)
 
 ## Requirements
 
@@ -24,7 +24,7 @@ Add it in your root build.gradle (project level) at the end of repositories:
 
 Add the dependency in your build.gradle (app level)
 ```gradle
-implementation 'com.github.WeLoopTeam:weloop:1.1.0'
+implementation 'com.github.WeLoopTeam:weloop:1.1.1'
 ```
 
 ### Updating the manifest
