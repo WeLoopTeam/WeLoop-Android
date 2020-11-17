@@ -53,6 +53,7 @@ class WeLoop : WebView{
     private lateinit var notificationListener: NotificationListener
     private lateinit var mContext: Context
     private var deviceInfo = DeviceInfo()
+    private var isLoaded = false
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
@@ -104,7 +105,6 @@ class WeLoop : WebView{
         this.floatingWidget.setOnClickListener {
             invoke()
         }
-        loadHome()
         initWidgetPreferences()
     }
 
@@ -235,6 +235,7 @@ class WeLoop : WebView{
             }
 
             override fun loadingFinished() {
+                isLoaded = true
                 shouldShowDialog = false
                 if (::dialog.isInitialized) {
                     if (dialog.isShowing) {
@@ -272,6 +273,9 @@ class WeLoop : WebView{
     }
 
     fun invoke() {
+        if (!isLoaded) {
+            loadHome()
+        }
         floatingWidget.visibility = View.GONE
         TakeScreenshotTask(this, takeScreenshot()!!).execute()
         visibility = View.VISIBLE
