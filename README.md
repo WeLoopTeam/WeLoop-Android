@@ -1,4 +1,4 @@
-[ ![Download](https://api.bintray.com/packages/paseuht/WeLoop/WeLoop/images/download.svg?version=1.0.9) ](https://bintray.com/paseuht/WeLoop/WeLoop/1.0.9/link)
+[ ![Download](https://api.bintray.com/packages/paseuht/WeLoop/WeLoop/images/download.svg?version=1.1.0) ](https://bintray.com/paseuht/WeLoop/WeLoop/1.1.0/link)
 
 ## Requirements
 
@@ -24,7 +24,7 @@ Add it in your root build.gradle (project level) at the end of repositories:
 
 Add the dependency in your build.gradle (app level)
 ```gradle
-implementation 'com.github.WeLoopTeam:weloop:1.0.9'
+implementation 'com.github.WeLoopTeam:weloop:1.1.0'
 ```
 
 ### Updating the manifest
@@ -114,13 +114,13 @@ In order to invoke WeLoop you have two options.
 Kotlin:
 ```kotlin
 //fab is the FloatingWeidget view
-weLoopWebView.initialize("YOUR_PROJECT_GUID", fab, this.window, this)// from a fragment : activity.window // this is an activity context
+weLoopWebView.initialize("YOUR_PROJECT_GUID", fab, this.window, this, YourClass:class.java.name)// from a fragment : activity.window // this is an activity context //YourClass is for the class where Weloop is initialized, nullable
 weLoopWebView.authenticateUser(User(id = "3", email = "toto@gmail.com", firstName = "tata", lastName = "titi"))
 ```
 Java:
 ```java
 //fab is the FloatingWeidget view
-weLoopWebView.initialize("YOUR_PROJECT_GUID", fab, this.getWindow(), this)// from a fragment : activity.getWindow()// this is an activity context
+weLoopWebView.initialize("YOUR_PROJECT_GUID", fab, this.getWindow(), this, MainActivityJava.class.getName())// from a fragment : activity.getWindow()// this is an activity context //YourClass is for the class where Weloop is initialized, nullable
 weLoopWebView.authenticateUser(User("3","toto@gmail.com","tata","titi"))
 ```
 
