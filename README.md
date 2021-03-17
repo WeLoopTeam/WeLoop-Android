@@ -1,4 +1,4 @@
-[ ![Download](https://api.bintray.com/packages/paseuht/WeLoop/WeLoop/images/download.svg?version=1.1.1) ](https://bintray.com/paseuht/WeLoop/WeLoop/1.1.1/link)
+[ ![Download](https://api.bintray.com/packages/paseuht/WeLoop/WeLoop/images/download.svg?version=1.1.2) ](https://bintray.com/paseuht/WeLoop/WeLoop/1.1.2/link)
 
 ## Requirements
 
@@ -197,11 +197,11 @@ Java:
     }
 ```
 
-### Listener
+### Notification
 If you want to get the notification number in real time :  
 Kotlin:
 ```kotlin
-weLoopWebView.addListener(object : WeLoop.NotificationListener{
+weLoopWebView.addNotificationListener(object : WeLoop.NotificationListener{
             override fun getNotification(number: Int){
                 //doSomeStuff
             }
@@ -209,13 +209,25 @@ weLoopWebView.addListener(object : WeLoop.NotificationListener{
 ```
 Java:
 ```java
-weloopWebView.addListener(new WeLoop.NotificationListener(){
+weloopWebView.addNotificationListener(new WeLoop.NotificationListener(){
             @Override
             public void getNotification(int number){
                 //doSomeStuff
             }
         });
 ```
+
+Manually request the notification number:
+Kotlin:
+```kotlin
+weLoopWebView.requestNotification(email)
+```
+Java:
+```java
+weLoopWebView.requestNotification(email)
+```
+
+then the ```getNotification``` method of the ```NotificationListener``` will be triggered for the result 
 
 ### Invocation method
 
