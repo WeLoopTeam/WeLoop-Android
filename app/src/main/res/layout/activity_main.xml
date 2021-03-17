@@ -52,11 +52,22 @@
             android:text="manual invocation"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/buttonNotif"
+            android:padding="10dp"
+            android:textSize="20sp"
+            android:textColor="@android:color/white"
+            android:text="Request notification"
+            android:background="@color/defaultColorBadge"
+            android:layout_marginTop="50dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
     </LinearLayout>
 
     <com.weloop.weloop.FloatingWidget
         app:badgeBackgroundColor="@color/defaultColorBadge"
-        android:background="@android:color/black"
         android:id="@+id/fab"
         android:layout_gravity="bottom|start"
         android:layout_margin="20dp"

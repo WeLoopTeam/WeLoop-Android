@@ -23,6 +23,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var weLoopWebView: WeLoop
     var uploadMessage: ValueCallback<Array<Uri>>? = null
+    private var email = "toto@email.fr"
+    private var apiKey = "e19340c0-b453-11e9-8113-1d4bacf0614e"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,7 +32,7 @@ class MainActivity : AppCompatActivity() {
         weLoopWebView = webview
         weLoopWebView.initialize("e19340c0-b453-11e9-8113-1d4bacf0614e", fab, window, this, MainActivity::class.java.name)
         weLoopWebView.authenticateUser(User(id = "4", email = "toto@email.fr", firstName = "John", lastName = "Doe"))
-        weLoopWebView.addListener(object : WeLoop.NotificationListener{
+        weLoopWebView.addNotificationListener(object : WeLoop.NotificationListener{
             override fun getNotification(number: Int){
                 //doSomeStuff
                 Log.e("NOTIF:", "$number")
@@ -55,6 +57,9 @@ class MainActivity : AppCompatActivity() {
             askForPermissions()
         }
         tabs.getTabAt(1)!!.select()
+        buttonNotif.setOnClickListener {
+            weLoopWebView.requestNotification(email)
+        }
     }
 
     override fun applyOverrideConfiguration(overrideConfiguration: Configuration) {
