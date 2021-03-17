@@ -25,6 +25,7 @@ import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.google.gson.Gson
 import com.weloop.weloop.model.DeviceInfo
+import com.weloop.weloop.model.NotificationListenerNotInitializedException
 import com.weloop.weloop.model.User
 import com.weloop.weloop.network.ApiServiceImp
 import com.weloop.weloop.utils.AES256Cryptor
@@ -316,13 +317,31 @@ class WeLoop : WebView{
         }
     }
 
-    fun addListener(notificationListener: NotificationListener){
+    fun addNotificationListener(notificationListener: NotificationListener){
         this.notificationListener = notificationListener
     }
 
     fun setInvocationMethod(invocationMethod: Int) {
         this.currentInvocationMethod = invocationMethod
         renderInvocation()
+    }
+
+    @Throws
+    fun requestNotification(email: String){
+        if (::notificationListener.isInitialized){
+            disposable.add(ApiServiceImp.requestNotification(email, apiKey)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError {
+                    Toast.makeText(context, "error occurred while requesting notification", Toast.LENGTH_SHORT).show()
+                }
+                .subscribe({
+                    notificationListener.getNotification(it.count)
+                }, Throwable::printStackTrace))
+        }
+        else
+            throw NotificationListenerNotInitializedException()
+
     }
 
 

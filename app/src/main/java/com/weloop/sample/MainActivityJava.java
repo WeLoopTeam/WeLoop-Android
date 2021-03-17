@@ -39,7 +39,7 @@ class MainActivityJava extends AppCompatActivity {
                 return true;
             }
         });
-        weloopWebView.addListener(new WeLoop.NotificationListener(){
+        weloopWebView.addNotificationListener(new WeLoop.NotificationListener(){
             @Override
             public void getNotification(int number){
                 //doSomeStuff
