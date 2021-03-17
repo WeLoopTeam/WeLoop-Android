@@ -24,7 +24,7 @@ Add it in your root build.gradle (project level) at the end of repositories:
 
 Add the dependency in your build.gradle (app level)
 ```gradle
-implementation 'com.github.WeLoopTeam:weloop:1.1.1'
+implementation 'com.github.WeLoopTeam:weloop:1.1.2'
 ```
 
 ### Updating the manifest
