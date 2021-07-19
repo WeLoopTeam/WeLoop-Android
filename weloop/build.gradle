@@ -1,9 +1,8 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
-apply plugin: 'maven-publish'
 apply plugin: 'signing'
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 
 repositories {
     mavenCentral()
@@ -48,7 +47,6 @@ properties.load(project.rootProject.file('local.properties').newDataInputStream(
 // configure your publications using the afterEvaluate() lifecycle method.
 
 afterEvaluate {
-
     publishing {
         publications {
             release(MavenPublication) {
@@ -56,20 +54,21 @@ afterEvaluate {
 //                    archiveClassifier.set("javadoc")
 //                }
 //                artifact(javadoc)
-                signing {
-                    useInMemoryPgpKeys(
-                            properties.getProperty('signing.keyId'),
-                            properties.getProperty('signing.secretKeyRingFile'),
-                            properties.getProperty('signing.password')
-                    )
-                    sign configurations.archives
 
-                }
                 groupId = 'io.github.WeLoopTeam'
                 artifactId = 'weloop'
                 version = '1.1.4'
                 from components.release
                 pom {
+                    signing {
+                        useInMemoryPgpKeys(
+                                properties.getProperty('signing.keyId'),
+                                properties.getProperty('signing.secretKeyRingFile'),
+                                properties.getProperty('signing.password')
+                        )
+                        sign publishing.publications.release
+                        sign configurations.archives
+                    }
                     name = 'WeLoop'
                     description = 'WeLoop '
                     url = 'https://weloop.io'
