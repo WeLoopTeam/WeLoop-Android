@@ -1,10 +1,9 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
-apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'maven-publish'
-apply plugin: 'maven'
 apply plugin: 'signing'
+apply plugin: 'maven'
 
 repositories {
     mavenCentral()
@@ -22,7 +21,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 30
         versionCode 9
-        versionName "1.1.2"
+        versionName "1.1.4"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
@@ -47,12 +46,7 @@ Properties properties = new Properties()
 properties.load(project.rootProject.file('local.properties').newDataInputStream())
 // Because the components are created only during the afterEvaluate phase, you must
 // configure your publications using the afterEvaluate() lifecycle method.
-signing {
-    useInMemoryPgpKeys(
-            properties.getProperty('signing.password'),
-            properties.getProperty('signing.secretKeyRingFile')
-    )
-}
+
 afterEvaluate {
 
     publishing {
@@ -62,9 +56,18 @@ afterEvaluate {
 //                    archiveClassifier.set("javadoc")
 //                }
 //                artifact(javadoc)
+                signing {
+                    useInMemoryPgpKeys(
+                            properties.getProperty('signing.keyId'),
+                            properties.getProperty('signing.secretKeyRingFile'),
+                            properties.getProperty('signing.password')
+                    )
+                    sign configurations.archives
+
+                }
                 groupId = 'io.github.WeLoopTeam'
                 artifactId = 'weloop'
-                version = '1.1.3'
+                version = '1.1.4'
                 from components.release
                 pom {
                     name = 'WeLoop'
@@ -74,6 +77,13 @@ afterEvaluate {
                         license {
                             name = 'MIT License'
                             url = 'https://opensource.org/licenses/MIT'
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = 'alexandre'
+                            name = 'Alexandre Thauvin'
+                            email = 'alexandre@thauvin.dev'
                         }
                     }
                     scm {
