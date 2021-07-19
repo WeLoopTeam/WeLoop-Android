@@ -89,7 +89,7 @@ afterEvaluate {
                 // change URLs to point to your repos, e.g. http://my.org/repo
                 //def releasesRepoUrl = layout.buildDirectory.dir('repos/releases')
                 //def snapshotsRepoUrl = layout.buildDirectory.dir('repos/snapshots')
-                url = uri("https://s01.oss.sonatype.org/")
+                url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
                 credentials {
                     username = properties.getProperty('ossrhUsername')
                     password = properties.getProperty('ossrhPassword')
