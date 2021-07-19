@@ -70,7 +70,7 @@ afterEvaluate {
                         sign configurations.archives
                     }
                     name = 'WeLoop'
-                    description = 'WeLoop '
+                    description = 'WeLoop Android sdk'
                     url = 'https://weloop.io'
                     licenses {
                         license {
