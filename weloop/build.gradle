@@ -57,15 +57,10 @@ afterEvaluate {
 
                 groupId = 'io.github.WeLoopTeam'
                 artifactId = 'weloop'
-                version = '1.1.4'
+                version = '1.1.5'
                 from components.release
                 pom {
                     signing {
-                        useInMemoryPgpKeys(
-                                properties.getProperty('signing.keyId'),
-                                properties.getProperty('signing.secretKeyRingFile'),
-                                properties.getProperty('signing.password')
-                        )
                         sign publishing.publications.release
                         sign configurations.archives
                     }
