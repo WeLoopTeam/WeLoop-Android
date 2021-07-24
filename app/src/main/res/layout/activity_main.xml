@@ -14,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <com.weloop.weloop.WeLoop
+        <WebView
             android:visibility="gone"
             android:id="@+id/webview"
             android:layout_width="match_parent"
@@ -59,6 +59,30 @@
             android:textSize="20sp"
             android:textColor="@android:color/white"
             android:text="Request notification"
+            android:background="@color/defaultColorBadge"
+            android:layout_marginTop="50dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/buttonStartNotifLoop"
+            android:padding="10dp"
+            android:textSize="20sp"
+            android:textColor="@android:color/white"
+            android:text="Start notif loop"
+            android:background="@color/defaultColorBadge"
+            android:layout_marginTop="50dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/buttonStopNotifLoop"
+            android:padding="10dp"
+            android:textSize="20sp"
+            android:textColor="@android:color/white"
+            android:text="Stop notif Loop"
             android:background="@color/defaultColorBadge"
             android:layout_marginTop="50dp"
             android:layout_gravity="center_horizontal"

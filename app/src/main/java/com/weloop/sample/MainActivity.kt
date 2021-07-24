@@ -21,7 +21,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var weLoopWebView: WeLoop
+    private lateinit var weLoop: WeLoop
     var uploadMessage: ValueCallback<Array<Uri>>? = null
     private var email = "toto@email.fr"
     private var apiKey = "e19340c0-b453-11e9-8113-1d4bacf0614e"
@@ -29,16 +29,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        weLoopWebView = webview
-        weLoopWebView.initialize("e19340c0-b453-11e9-8113-1d4bacf0614e", fab, window, this, MainActivity::class.java.name)
-        weLoopWebView.authenticateUser(User(id = "4", email = "toto@email.fr", firstName = "John", lastName = "Doe"))
-        weLoopWebView.addNotificationListener(object : WeLoop.NotificationListener{
-            override fun getNotification(number: Int){
-                //doSomeStuff
-                Log.e("NOTIF:", "$number")
-            }
-        })
-        weLoopWebView.webChromeClient = object:WebChromeClient() {
+        weLoop = WeLoop()
+        webview.webChromeClient = object:WebChromeClient() {
             override fun onShowFileChooser(webView: WebView, filePathCallback:ValueCallback<Array<Uri>>, fileChooserParams:FileChooserParams):Boolean {
                 val intent = Intent(Intent.ACTION_GET_CONTENT)
                 if (uploadMessage != null){
@@ -52,13 +44,29 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
         }
+        weLoop.initialize(apiKey, window, this, MainActivity::class.java.name, webview)
+        weLoop.initWidgetPreferences(fab)
+        weLoop.authenticateUser(User(id = "4", email = email, firstName = "John", lastName = "Doe"))
+        weLoop.addNotificationListener(object : WeLoop.NotificationListener{
+            override fun getNotification(number: Int){
+                //doSomeStuff
+                Log.e("NOTIF:", "$number")
+            }
+        })
+        buttonStartNotifLoop.setOnClickListener {
+            weLoop.startRequestingNotificationsEveryTwoMinutes(email)
+        }
+        buttonStopNotifLoop.setOnClickListener {
+            weLoop.stopRequestingNotificationsEveryTwoMinutes()
+        }
         initListeners()
         if (Build.VERSION.SDK_INT >= 23){
             askForPermissions()
         }
         tabs.getTabAt(1)!!.select()
         buttonNotif.setOnClickListener {
-            weLoopWebView.requestNotification(email)
+            weLoop.requestNotification(email)
+            Toast.makeText(this, "je suis toast", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -72,7 +80,7 @@ class MainActivity : AppCompatActivity() {
     private fun initListeners(){
         tvManualInvocation.setOnClickListener {
             if (tabs.selectedTabPosition == 0) {
-                weLoopWebView.invoke()
+                weLoop.invoke()
             }
         }
         tabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
@@ -82,8 +90,8 @@ class MainActivity : AppCompatActivity() {
 
             override fun onTabSelected(p0: TabLayout.Tab?) {
                 when (p0!!.position) {
-                    0 -> weLoopWebView.setInvocationMethod(WeLoop.MANUAL)
-                    1 -> weLoopWebView.setInvocationMethod(WeLoop.FAB)
+                    0 -> weLoop.setInvocationMethod(WeLoop.MANUAL)
+                    1 -> weLoop.setInvocationMethod(WeLoop.FAB)
                 }
             }
 

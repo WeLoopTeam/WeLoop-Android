@@ -13,17 +13,19 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.weloop.weloop.FloatingWidget;
 import com.weloop.weloop.WeLoop;
+import com.weloop.weloop.model.User;
 
 class MainActivityJava extends AppCompatActivity {
 
     private ValueCallback<Uri[]> uploadMessage;
-    WeLoop weloopWebView = findViewById(R.id.webview);
+    WebView webView = findViewById(R.id.webview);
+    FloatingWidget fab = findViewById(R.id.fab);
+    private WeLoop weLoop;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        weloopWebView.initialize("", (FloatingWidget) findViewById(R.id.fab), getWindow(), this, null);
-        MainActivityJava.class.getName();
-        weloopWebView.setWebChromeClient(new WebChromeClient() {
+        weLoop = new WeLoop();
+        webView.setWebChromeClient(new WebChromeClient() {
             public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams
                     fileChooserParams) {
                 // make sure there is no existing message
@@ -39,7 +41,11 @@ class MainActivityJava extends AppCompatActivity {
                 return true;
             }
         });
-        weloopWebView.addNotificationListener(new WeLoop.NotificationListener(){
+        weLoop.initialize("", getWindow(), this, null, webView);
+        weLoop.initWidgetPreferences(fab);
+        weLoop.authenticateUser(new User("4", "toto@email.fr", "John", "Doe"));
+        MainActivityJava.class.getName();
+        weLoop.addNotificationListener(new WeLoop.NotificationListener(){
             @Override
             public void getNotification(int number){
                 //doSomeStuff

@@ -8,7 +8,6 @@ import android.graphics.drawable.Drawable
 import android.os.AsyncTask
 import android.os.Build
 import android.os.Environment
-import android.util.AttributeSet
 import android.util.Base64
 import android.util.DisplayMetrics
 import android.view.Gravity
@@ -32,60 +31,74 @@ import com.weloop.weloop.utils.AES256Cryptor
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.*
 import java.io.ByteArrayOutputStream
 import java.util.*
 
 
 /* Created by *-----* Alexandre Thauvin *-----* */
 
-class WeLoop : WebView{
-    private var currentInvocationMethod = 0
-    private var apiKey: String = ""
-    private lateinit var floatingWidget: FloatingWidget
+class WeLoop{
+    private var mCurrentInvocationMethod = 0
+    private var mApiKey: String = ""
+    private lateinit var mFloatingWidget: FloatingWidget
     private var webViewInterface = WebAppInterface()
     private val disposable = CompositeDisposable()
-    private lateinit var token: String
+    private lateinit var mToken: String
     private var isPreferencesLoaded = false
-    private lateinit var window: Window
+    private lateinit var mWindow: Window
     private var screenshot: String = ""
     private var screenShotAsked = false
     private lateinit var dialog: SweetAlertDialog
     private var shouldShowDialog = false
-    private lateinit var notificationListener: NotificationListener
+    private lateinit var mNotificationListener: NotificationListener
     private lateinit var mContext: Context
     private var deviceInfo = DeviceInfo()
     private var isLoaded = false
+    private lateinit var mWebView: WebView
+    private var loopNotification = false
 
-    constructor(context: Context) : super(context)
-    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
-    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int): super(
-        context,
-        attrs,
-        defStyleAttr
-    )
+     // could also use an other scope such as viewModelScope if available
+    var job: Job? = null
 
-    init {
-        isFocusableInTouchMode = true
-        isFocusable = true
-        visibility = View.GONE
-        settings.domStorageEnabled = true
-        settings.javaScriptCanOpenWindowsAutomatically = true
-        settings.javaScriptEnabled = true
+    fun startRequestingNotificationsEveryTwoMinutes(email: String) {
+        val scope = CoroutineScope(Dispatchers.IO)
+        stopRequestingNotificationsEveryTwoMinutes()
+        loopNotification = true
+        job = scope.launch {
+            while(loopNotification) {
+                requestNotification(email)
+                delay(10000)
+            }
+        }
+    }
+
+    fun stopRequestingNotificationsEveryTwoMinutes() {
+        loopNotification = false
+        job?.cancel()
+        job = null
     }
 
     fun initialize(
         apiKey: String,
-        floatingWidget: FloatingWidget,
         window: Window,
         context: Context,
-        weloopLocation: String?
+        weloopLocation: String?,
+        webView: WebView
     ) {
         mContext = context
-
+        mWebView = webView
+        mWebView.isFocusableInTouchMode = true
+        mWebView.isFocusable = true
+        mWebView.settings.domStorageEnabled = true
+        mWebView.settings.javaScriptCanOpenWindowsAutomatically = true
+        mWebView.settings.javaScriptEnabled = true
         val displayMetrics = DisplayMetrics()
         window.windowManager.defaultDisplay.getMetrics(displayMetrics)
         val height: Int = displayMetrics.heightPixels
         val width: Int = displayMetrics.widthPixels
+
+        initWebAppListener()
 
         deviceInfo.screenHeight = height.toString()
         deviceInfo.screenWidth = width.toString()
@@ -97,28 +110,26 @@ class WeLoop : WebView{
         }
         deviceInfo.weloopLocation = weloopLocation
 
-        this.floatingWidget = floatingWidget
-        this.floatingWidget.visibility = View.GONE
-        this.window = window
-        this.apiKey = apiKey
-        initWebAppListener()
-        addJavascriptInterface(webViewInterface, "Android")
-        this.floatingWidget.setOnClickListener {
-            invoke()
-        }
-        initWidgetPreferences()
+        mWindow = window
+        mApiKey = apiKey
+        mWebView.addJavascriptInterface(webViewInterface, "Android")
     }
 
-    private fun initWidgetPreferences() {
-        disposable.add(ApiServiceImp.getWidgetPreferences(this.apiKey)
+    fun initWidgetPreferences(floatingWidget: FloatingWidget) {
+        mFloatingWidget = floatingWidget
+        mFloatingWidget.visibility = View.GONE
+        mFloatingWidget.setOnClickListener {
+            invoke()
+        }
+        disposable.add(ApiServiceImp.getWidgetPreferences(mApiKey)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .doOnError {
-                Toast.makeText(context, "error during initialization", Toast.LENGTH_SHORT).show()
+                Toast.makeText(mContext, "error during initialization", Toast.LENGTH_SHORT).show()
             }
             .subscribe({
                 if (it.widgetPrimaryColor != null) {
-                    this.floatingWidget.backgroundTintList = ColorStateList.valueOf(
+                    mFloatingWidget.backgroundTintList = ColorStateList.valueOf(
                         Color.rgb(
                             it.widgetPrimaryColor!!["r"]!!.toInt(),
                             it.widgetPrimaryColor!!["g"]!!.toInt(),
@@ -127,20 +138,20 @@ class WeLoop : WebView{
                     )
                 } else {
                     if (Build.VERSION.SDK_INT in 21..22) {
-                        this.floatingWidget.backgroundTintList =
+                        mFloatingWidget.backgroundTintList =
                             ColorStateList.valueOf(
                                 getColor(
-                                    context,
+                                    mContext,
                                     R.color.defaultColorWidget
                                 )
                             )
                     } else {
-                        this.floatingWidget.backgroundTintList =
-                            ColorStateList.valueOf(context.getColor(R.color.defaultColorWidget))
+                        mFloatingWidget.backgroundTintList =
+                            ColorStateList.valueOf(mContext.getColor(R.color.defaultColorWidget))
                     }
                 }
                 if (it.widgetIcon != null) {
-                    Glide.with(context)
+                    Glide.with(mContext)
                         .asBitmap()
                         .load(it.widgetIcon)
                         .into(object : CustomTarget<Bitmap>() {
@@ -167,7 +178,7 @@ class WeLoop : WebView{
                         setMargins(0, 0, 40, 40)
                         gravity = Gravity.END or Gravity.BOTTOM
                     }
-                    this.floatingWidget.layoutParams = params
+                    mFloatingWidget.layoutParams = params
                 } else {
                     val params = CoordinatorLayout.LayoutParams(
                         LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -176,24 +187,24 @@ class WeLoop : WebView{
                         setMargins(40, 0, 0, 40)
                         gravity = Gravity.START or Gravity.BOTTOM
                     }
-                    this.floatingWidget.layoutParams = params
+                    mFloatingWidget.layoutParams = params
                 }
                 isPreferencesLoaded = true
-                this.floatingWidget.visibility = View.VISIBLE
+                mFloatingWidget.visibility = View.VISIBLE
             }, Throwable::printStackTrace)
         )
     }
 
     private fun renderInvocation() {
-        when (currentInvocationMethod) {
+        when (mCurrentInvocationMethod) {
             FAB -> {
-                if (::floatingWidget.isInitialized && isPreferencesLoaded) {
-                    floatingWidget.visibility = View.VISIBLE
+                if (::mFloatingWidget.isInitialized && isPreferencesLoaded) {
+                    mFloatingWidget.visibility = View.VISIBLE
                 }
             }
             else -> {
-                if (::floatingWidget.isInitialized) {
-                    floatingWidget.visibility = View.GONE
+                if (::mFloatingWidget.isInitialized) {
+                    mFloatingWidget.visibility = View.GONE
                 }
             }
         }
@@ -202,15 +213,15 @@ class WeLoop : WebView{
     private fun initWebAppListener() {
         webViewInterface.addListener(object : WebAppInterface.WebAppListener {
             override fun closePanel() {
-                this@WeLoop.post {
-                    visibility = View.GONE; floatingWidget.visibility = View.VISIBLE
+                mWebView.post {
+                    mWebView.visibility = View.GONE; mFloatingWidget.visibility = View.VISIBLE
                 }
             }
 
             override fun getCapture() {
                 if (screenshot.isNotEmpty()) {
-                    this@WeLoop.post {
-                        loadUrl(
+                    mWebView.post {
+                        mWebView.loadUrl(
                             "javascript:getCapture('data:im      90" +
                                     "; age/jpg;base64, ${screenshot}')"
                         ); screenShotAsked = false
@@ -221,17 +232,17 @@ class WeLoop : WebView{
             }
 
             override fun getCurrentUser() {
-                if (this@WeLoop::token.isInitialized) {
-                    this@WeLoop.post { loadUrl("javascript:GetCurrentUser({ appGuid: '$apiKey', token: '$token'})") }
+                if (this@WeLoop::mToken.isInitialized) {
+                    mWebView.post { mWebView.loadUrl("javascript:GetCurrentUser({ appGuid: '$mApiKey', token: '$mToken'})") }
                 } else {
-                    this@WeLoop.post { loadUrl("javascript:GetCurrentUser({ appGuid: '$apiKey'})") }
+                    mWebView.post { mWebView.loadUrl("javascript:GetCurrentUser({ appGuid: '$mApiKey'})") }
                 }
             }
 
             override fun setNotificationCount(number: Int) {
-                floatingWidget.count = number
-                if (::notificationListener.isInitialized) {
-                    notificationListener.getNotification(number)
+                mFloatingWidget.count = number
+                if (::mNotificationListener.isInitialized) {
+                    mNotificationListener.getNotification(number)
                 }
             }
 
@@ -247,12 +258,12 @@ class WeLoop : WebView{
 
             override fun getDeviceInfo() {
                 val json = Gson().toJson(deviceInfo)
-                this@WeLoop.post { loadUrl("javascript:getDeviceInfo({ value: '$json'})") }
+                mWebView.post { mWebView.loadUrl("javascript:getDeviceInfo({ value: '$json'})") }
             }
         })
     }
 
-    class TakeScreenshotTask(val weLoop: WeLoop, val bitmap: Bitmap) :
+    internal class TakeScreenshotTask(val weLoop: WeLoop, val bitmap: Bitmap) :
         AsyncTask<Void, Void, String>() {
         override fun doInBackground(vararg params: Void?): String? {
             val byteArrayOutputStream = ByteArrayOutputStream()
@@ -265,8 +276,8 @@ class WeLoop : WebView{
             super.onPostExecute(result)
             weLoop.screenshot = result!!
             if (weLoop.screenShotAsked) {
-                weLoop.post {
-                    weLoop.loadUrl("javascript:getCapture('data:image/jpg;base64, ${weLoop.screenshot}')"); weLoop.screenShotAsked =
+                weLoop.mWebView.post {
+                    weLoop.mWebView.loadUrl("javascript:getCapture('data:image/jpg;base64, ${weLoop.screenshot}')"); weLoop.screenShotAsked =
                     false
                 }
             }
@@ -277,9 +288,9 @@ class WeLoop : WebView{
         if (!isLoaded) {
             loadHome()
         }
-        floatingWidget.visibility = View.GONE
+        mFloatingWidget.visibility = View.GONE
         TakeScreenshotTask(this, takeScreenshot()!!).execute()
-        visibility = View.VISIBLE
+        mWebView.visibility = View.VISIBLE
         if (shouldShowDialog) {
             dialog = SweetAlertDialog(mContext, SweetAlertDialog.PROGRESS_TYPE)
             dialog.setCancelable(true)
@@ -295,7 +306,7 @@ class WeLoop : WebView{
             val mPath = Environment.getExternalStorageDirectory().toString() + "/" + now + ".jpg"
 
             // create bitmap screen capture
-            val v1 = window.decorView.rootView
+            val v1 = mWindow.decorView.rootView
             v1.setDrawingCacheEnabled(true)
             return Bitmap.createBitmap(v1.getDrawingCache())
         } catch (e: Throwable) {
@@ -305,44 +316,64 @@ class WeLoop : WebView{
     }
 
     private fun loadHome() {
-        this.post { loadUrl(URL + apiKey); shouldShowDialog = true }
+        mWebView.post { mWebView.loadUrl(URL + mApiKey); shouldShowDialog = true }
     }
 
     fun authenticateUser(user: User) {
         if (android.util.Patterns.EMAIL_ADDRESS.matcher(user.email).matches()) {
             val str = user.email + "|" + user.firstName + "|" + user.lastName + "|" + user.id
-            token = AES256Cryptor.encrypt(str, apiKey)!!
+            mToken = AES256Cryptor.encrypt(str, mApiKey)!!
         } else {
-            Toast.makeText(context, "email incorrect", Toast.LENGTH_LONG).show()
+            Toast.makeText(mContext, "email incorrect", Toast.LENGTH_LONG).show()
         }
     }
 
     fun addNotificationListener(notificationListener: NotificationListener){
-        this.notificationListener = notificationListener
+        mNotificationListener = notificationListener
     }
 
     fun setInvocationMethod(invocationMethod: Int) {
-        this.currentInvocationMethod = invocationMethod
+        mCurrentInvocationMethod = invocationMethod
         renderInvocation()
     }
 
     @Throws
     fun requestNotification(email: String){
-        if (::notificationListener.isInitialized){
-            disposable.add(ApiServiceImp.requestNotification(email, apiKey)
+        if (::mNotificationListener.isInitialized){
+            disposable.add(ApiServiceImp.requestNotification(email, mApiKey)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError {
-                    Toast.makeText(context, "error occurred while requesting notification", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(mContext, "error occurred while requesting notification", Toast.LENGTH_SHORT).show()
                 }
                 .subscribe({
-                    notificationListener.getNotification(it.count)
+                    mNotificationListener.getNotification(it.count)
                 }, Throwable::printStackTrace))
         }
         else
             throw NotificationListenerNotInitializedException()
 
     }
+
+    @Throws
+    fun startLoopRequestNotificationWithTimer(email: String){
+        //start the loop
+    }
+
+    fun stopLoopRequestNotificationWithTimer(){
+        repeatFun().cancel()
+    }
+
+    private fun repeatFun(): Job {
+        return CoroutineScope(Dispatchers.IO).launch {
+            while(isActive) {
+                //do your network request here
+                delay(10000)
+            }
+        }
+    }
+
+
 
 
     interface NotificationListener{
