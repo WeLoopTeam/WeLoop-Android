@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        weLoop = WeLoop()
+        weLoop = WeLoop(this, apiKey)
         webview.webChromeClient = object:WebChromeClient() {
             override fun onShowFileChooser(webView: WebView, filePathCallback:ValueCallback<Array<Uri>>, fileChooserParams:FileChooserParams):Boolean {
                 val intent = Intent(Intent.ACTION_GET_CONTENT)
@@ -44,8 +44,8 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
         }
-        weLoop.initialize(apiKey, window, this, MainActivity::class.java.name, webview)
-        weLoop.initWidgetPreferences(fab)
+        weLoop.initialize(apiKey, window, MainActivity::class.java.name, webview)
+        //weLoop.initWidgetPreferences(fab)
         weLoop.authenticateUser(User(id = "4", email = email, firstName = "John", lastName = "Doe"))
         weLoop.addNotificationListener(object : WeLoop.NotificationListener{
             override fun getNotification(number: Int){
@@ -63,7 +63,6 @@ class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= 23){
             askForPermissions()
         }
-        tabs.getTabAt(1)!!.select()
         buttonNotif.setOnClickListener {
             weLoop.requestNotification(email)
             Toast.makeText(this, "je suis toast", Toast.LENGTH_SHORT).show()
@@ -139,7 +138,6 @@ class MainActivity : AppCompatActivity() {
     override fun onBackPressed() {
         if (webview.visibility == View.VISIBLE){
             webview.visibility = View.GONE
-            fab.visibility = View.VISIBLE
         }
         else {
             super.onBackPressed()

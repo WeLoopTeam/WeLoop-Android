@@ -43,54 +43,65 @@
 
         </com.google.android.material.tabs.TabLayout>
 
-        <androidx.appcompat.widget.AppCompatTextView
+        <androidx.appcompat.widget.AppCompatButton
+            android:layout_marginEnd="20dp"
+            android:layout_marginStart="20dp"
+            android:padding="10dp"
+            android:background="@color/defaultColorBadge"
             android:id="@+id/tvManualInvocation"
             android:layout_marginTop="50dp"
             android:textColor="@android:color/white"
-            android:textSize="30sp"
+            android:textSize="20sp"
             android:layout_gravity="center_horizontal"
             android:text="manual invocation"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
         <androidx.appcompat.widget.AppCompatButton
+            android:layout_marginEnd="20dp"
+            android:layout_marginStart="20dp"
             android:id="@+id/buttonNotif"
             android:padding="10dp"
             android:textSize="20sp"
             android:textColor="@android:color/white"
-            android:text="Request notification"
+            android:text="Request  single notification"
             android:background="@color/defaultColorBadge"
             android:layout_marginTop="50dp"
             android:layout_gravity="center_horizontal"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
         <androidx.appcompat.widget.AppCompatButton
+            android:layout_marginEnd="20dp"
+            android:layout_marginStart="20dp"
             android:id="@+id/buttonStartNotifLoop"
             android:padding="10dp"
             android:textSize="20sp"
             android:textColor="@android:color/white"
-            android:text="Start notif loop"
+            android:text="Start Requesting Notif Every 2 minutes"
             android:background="@color/defaultColorBadge"
             android:layout_marginTop="50dp"
             android:layout_gravity="center_horizontal"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
         <androidx.appcompat.widget.AppCompatButton
+            android:layout_marginEnd="20dp"
+            android:layout_marginStart="20dp"
             android:id="@+id/buttonStopNotifLoop"
             android:padding="10dp"
             android:textSize="20sp"
             android:textColor="@android:color/white"
-            android:text="Stop notif Loop"
+            android:text="Stop requesting notif"
             android:background="@color/defaultColorBadge"
             android:layout_marginTop="50dp"
             android:layout_gravity="center_horizontal"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
     </LinearLayout>
 
     <com.weloop.weloop.FloatingWidget
+        android:visibility="gone"
         app:badgeBackgroundColor="@color/defaultColorBadge"
         android:id="@+id/fab"
         android:layout_gravity="bottom|start"

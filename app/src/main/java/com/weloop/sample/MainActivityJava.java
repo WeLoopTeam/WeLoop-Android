@@ -20,11 +20,12 @@ class MainActivityJava extends AppCompatActivity {
     private ValueCallback<Uri[]> uploadMessage;
     WebView webView = findViewById(R.id.webview);
     FloatingWidget fab = findViewById(R.id.fab);
+    String apiKey = "e19340c0-b453-11e9-8113-1d4bacf0614e";
     private WeLoop weLoop;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        weLoop = new WeLoop();
+        weLoop = new WeLoop(this, apiKey);
         webView.setWebChromeClient(new WebChromeClient() {
             public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams
                     fileChooserParams) {
@@ -41,7 +42,7 @@ class MainActivityJava extends AppCompatActivity {
                 return true;
             }
         });
-        weLoop.initialize("", getWindow(), this, null, webView);
+        weLoop.initialize("", getWindow(), null, webView);
         weLoop.initWidgetPreferences(fab);
         weLoop.authenticateUser(new User("4", "toto@email.fr", "John", "Doe"));
         MainActivityJava.class.getName();

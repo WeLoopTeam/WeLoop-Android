@@ -38,9 +38,8 @@ import java.util.*
 
 /* Created by *-----* Alexandre Thauvin *-----* */
 
-class WeLoop{
+class WeLoop(private var mContext: Context, private var mApiKey: String) {
     private var mCurrentInvocationMethod = 0
-    private var mApiKey: String = ""
     private lateinit var mFloatingWidget: FloatingWidget
     private var webViewInterface = WebAppInterface()
     private val disposable = CompositeDisposable()
@@ -52,41 +51,20 @@ class WeLoop{
     private lateinit var dialog: SweetAlertDialog
     private var shouldShowDialog = false
     private lateinit var mNotificationListener: NotificationListener
-    private lateinit var mContext: Context
     private var deviceInfo = DeviceInfo()
     private var isLoaded = false
     private lateinit var mWebView: WebView
     private var loopNotification = false
 
-     // could also use an other scope such as viewModelScope if available
+    // could also use an other scope such as viewModelScope if available
     var job: Job? = null
-
-    fun startRequestingNotificationsEveryTwoMinutes(email: String) {
-        val scope = CoroutineScope(Dispatchers.IO)
-        stopRequestingNotificationsEveryTwoMinutes()
-        loopNotification = true
-        job = scope.launch {
-            while(loopNotification) {
-                requestNotification(email)
-                delay(10000)
-            }
-        }
-    }
-
-    fun stopRequestingNotificationsEveryTwoMinutes() {
-        loopNotification = false
-        job?.cancel()
-        job = null
-    }
 
     fun initialize(
         apiKey: String,
         window: Window,
-        context: Context,
         weloopLocation: String?,
         webView: WebView
     ) {
-        mContext = context
         mWebView = webView
         mWebView.isFocusableInTouchMode = true
         mWebView.isFocusable = true
@@ -102,10 +80,9 @@ class WeLoop{
 
         deviceInfo.screenHeight = height.toString()
         deviceInfo.screenWidth = width.toString()
-        deviceInfo.weloopLocation = if (deviceInfo.weloopLocation.isNullOrEmpty()){
+        deviceInfo.weloopLocation = if (deviceInfo.weloopLocation.isNullOrEmpty()) {
             "Not found"
-        }
-        else {
+        } else {
             deviceInfo.weloopLocation
         }
         deviceInfo.weloopLocation = weloopLocation
@@ -117,7 +94,6 @@ class WeLoop{
 
     fun initWidgetPreferences(floatingWidget: FloatingWidget) {
         mFloatingWidget = floatingWidget
-        mFloatingWidget.visibility = View.GONE
         mFloatingWidget.setOnClickListener {
             invoke()
         }
@@ -190,7 +166,9 @@ class WeLoop{
                     mFloatingWidget.layoutParams = params
                 }
                 isPreferencesLoaded = true
-                mFloatingWidget.visibility = View.VISIBLE
+                if (mCurrentInvocationMethod == FAB) {
+                    mFloatingWidget.visibility = View.VISIBLE
+                }
             }, Throwable::printStackTrace)
         )
     }
@@ -214,7 +192,10 @@ class WeLoop{
         webViewInterface.addListener(object : WebAppInterface.WebAppListener {
             override fun closePanel() {
                 mWebView.post {
-                    mWebView.visibility = View.GONE; mFloatingWidget.visibility = View.VISIBLE
+                    mWebView.visibility = View.GONE
+                    if (::mFloatingWidget.isInitialized && mCurrentInvocationMethod == FAB) {
+                        mFloatingWidget.visibility = View.VISIBLE
+                    }
                 }
             }
 
@@ -240,7 +221,9 @@ class WeLoop{
             }
 
             override fun setNotificationCount(number: Int) {
-                mFloatingWidget.count = number
+                if (::mFloatingWidget.isInitialized) {
+                    mFloatingWidget.count = number
+                }
                 if (::mNotificationListener.isInitialized) {
                     mNotificationListener.getNotification(number)
                 }
@@ -288,7 +271,9 @@ class WeLoop{
         if (!isLoaded) {
             loadHome()
         }
-        mFloatingWidget.visibility = View.GONE
+        if (::mFloatingWidget.isInitialized) {
+            mFloatingWidget.visibility = View.GONE
+        }
         TakeScreenshotTask(this, takeScreenshot()!!).execute()
         mWebView.visibility = View.VISIBLE
         if (shouldShowDialog) {
@@ -328,7 +313,7 @@ class WeLoop{
         }
     }
 
-    fun addNotificationListener(notificationListener: NotificationListener){
+    fun addNotificationListener(notificationListener: NotificationListener) {
         mNotificationListener = notificationListener
     }
 
@@ -337,52 +322,53 @@ class WeLoop{
         renderInvocation()
     }
 
-    @Throws
-    fun requestNotification(email: String){
-        if (::mNotificationListener.isInitialized){
-            disposable.add(ApiServiceImp.requestNotification(email, mApiKey)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnError {
-                    Toast.makeText(mContext, "error occurred while requesting notification", Toast.LENGTH_SHORT).show()
-                }
-                .subscribe({
-                    mNotificationListener.getNotification(it.count)
-                }, Throwable::printStackTrace))
-        }
-        else
-            throw NotificationListenerNotInitializedException()
-
-    }
-
-    @Throws
-    fun startLoopRequestNotificationWithTimer(email: String){
-        //start the loop
-    }
-
-    fun stopLoopRequestNotificationWithTimer(){
-        repeatFun().cancel()
-    }
-
-    private fun repeatFun(): Job {
-        return CoroutineScope(Dispatchers.IO).launch {
-            while(isActive) {
-                //do your network request here
-                delay(10000)
+    fun startRequestingNotificationsEveryTwoMinutes(email: String) {
+        val scope = CoroutineScope(Dispatchers.IO)
+        stopRequestingNotificationsEveryTwoMinutes()
+        loopNotification = true
+        job = scope.launch {
+            while (loopNotification) {
+                requestNotification(email)
+                delay(120000)
             }
         }
     }
 
+    fun stopRequestingNotificationsEveryTwoMinutes() {
+        loopNotification = false
+        job?.cancel()
+        job = null
+    }
+
+    @Throws
+    fun requestNotification(email: String) {
+        if (::mNotificationListener.isInitialized) {
+            disposable.add(ApiServiceImp.requestNotification(email, mApiKey)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError {
+                    Toast.makeText(
+                        mContext,
+                        "error occurred while requesting notification",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                .subscribe({
+                    mNotificationListener.getNotification(it.count)
+                }, Throwable::printStackTrace)
+            )
+        } else
+            throw NotificationListenerNotInitializedException()
+    }
 
 
-
-    interface NotificationListener{
+    interface NotificationListener {
         fun getNotification(number: Int)
     }
 
     companion object {
-        const val FAB = 0
-        const val MANUAL = 1
+        const val MANUAL = 0
+        const val FAB = 1
         private const val URL = "https://widget.weloop.io/home?appGuid="
     }
 }
