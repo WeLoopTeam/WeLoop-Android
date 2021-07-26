@@ -1,3 +1,5 @@
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.WeLoopTeam/weloop/badge.svg?style=flat-plastic&gav=true)](https://maven-badges.herokuapp.com/maven-central/io.github.WeLoopTeam/weloop)
+
 ## Requirements
 
 minSdkVersion 21
