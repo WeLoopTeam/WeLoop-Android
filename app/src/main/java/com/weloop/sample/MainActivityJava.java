@@ -42,7 +42,7 @@ class MainActivityJava extends AppCompatActivity {
                 return true;
             }
         });
-        weLoop.initialize("", getWindow(), null, webView);
+        weLoop.initialize(getWindow(), null, webView);
         weLoop.initWidgetPreferences(fab);
         weLoop.authenticateUser(new User("4", "toto@email.fr", "John", "Doe"));
         MainActivityJava.class.getName();

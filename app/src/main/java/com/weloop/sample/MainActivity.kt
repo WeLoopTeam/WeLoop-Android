@@ -44,13 +44,14 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
         }
-        weLoop.initialize(apiKey, window, MainActivity::class.java.name, webview)
+        weLoop.initialize(window, MainActivity::class.java.name, webview)
         //weLoop.initWidgetPreferences(fab)
         weLoop.authenticateUser(User(id = "4", email = email, firstName = "John", lastName = "Doe"))
         weLoop.addNotificationListener(object : WeLoop.NotificationListener{
             override fun getNotification(number: Int){
                 //doSomeStuff
                 Log.e("NOTIF:", "$number")
+                Toast.makeText(this@MainActivity, "NOTIF: $number", Toast.LENGTH_SHORT).show()
             }
         })
         buttonStartNotifLoop.setOnClickListener {
@@ -65,7 +66,6 @@ class MainActivity : AppCompatActivity() {
         }
         buttonNotif.setOnClickListener {
             weLoop.requestNotification(email)
-            Toast.makeText(this, "je suis toast", Toast.LENGTH_SHORT).show()
         }
     }
 

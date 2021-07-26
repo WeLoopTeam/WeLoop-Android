@@ -60,7 +60,6 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
     var job: Job? = null
 
     fun initialize(
-        apiKey: String,
         window: Window,
         weloopLocation: String?,
         webView: WebView
@@ -88,7 +87,6 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
         deviceInfo.weloopLocation = weloopLocation
 
         mWindow = window
-        mApiKey = apiKey
         mWebView.addJavascriptInterface(webViewInterface, "Android")
     }
 
