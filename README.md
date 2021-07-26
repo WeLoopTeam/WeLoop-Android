@@ -1,5 +1,3 @@
-[ ![Download](https://api.bintray.com/packages/paseuht/WeLoop/WeLoop/images/download.svg?version=1.1.2) ](https://bintray.com/paseuht/WeLoop/WeLoop/1.1.2/link)
-
 ## Requirements
 
 minSdkVersion 21
