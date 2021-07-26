@@ -9,22 +9,29 @@ minSdkVersion 21
 ### Gradle
 Add it in your root build.gradle (project level) at the end of repositories:
 ```gradle
-    buildscript {
-    	repositories {
-        jcenter()//add jcenter()
-    	}
-    }
-    
-    allprojects {
+buildscript {
+    ext.kotlin_version = '1.5.21'
     repositories {
-        jcenter() //add jcenter()
+        maven { url "https://jitpack.io" }
+        maven { url "https://plugins.gradle.org/m2/" }
+        google()
+        mavenCentral()
+    }
+}
+
+allprojects {
+    repositories {
+        maven { url "https://jitpack.io" }
+        maven { url "https://plugins.gradle.org/m2/" }
+        google()
+        mavenCentral()
     }
 }
 ```
 
 Add the dependency in your build.gradle (app level)
 ```gradle
-implementation 'com.github.WeLoopTeam:weloop:1.1.2'
+    implementation 'io.github.WeLoopTeam:weloop:2.0.1'
 ```
 
 ### Updating the manifest
@@ -37,27 +44,15 @@ Do not forget to check the permission at the runtime : https://developer.android
 
 ## Usage
 
-### Invocation
+### Instantiation
+Instantiate the WeLoop object:
+```kotlin
+var weloop = WeLoop(context, apiKey)
+```
+```java
+WeLoop = WeLoop(context, apiKey)
+```
 
-First you must implement the floating button and the webview :  
-webview :
-```xml
-        <com.weloop.weloop.WeLoop
-            android:id="@+id/webview"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
-```
-fab :
-```xml
-<com.weloop.weloop.FloatingWidget
-        app:badgeBackgroundColor="@color/defaultColorBadge"
-        android:background="@android:color/black"
-        android:id="@+id/fab"
-        android:layout_gravity="bottom|start"
-        android:layout_margin="20dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
-```
 ### minSDK < 23
 
 If your app minSDK < 23 ; Put this in the parent activity of the weloop webview:  
@@ -83,96 +78,21 @@ override fun applyOverrideConfiguration(overrideConfiguration: Configuration) {
 ```
 
 
-### Init your WeLoop var and uploadMessage (for attachment) :  
-Java:
-```java
-private String PICKFILE_REQUEST_CODE = 100;
-private ValueCallback<Uri[]> uploadMessage;
-private WeLoop weloopWebView;
-```
+### Init your uploadMessage (for attachment) :  
+1. Declare the variable
+
 kotlin:
 ```kotlin
 val PICKFILE_REQUEST_CODE = 100
 var uploadMessage: ValueCallback<Array<Uri>>? = null
-private lateinir var weloopWebview: WeLoop
-```
-
-### Init your weloopWebview:  
-Kotlin:
-```kotlin
-weLoopWebView = webview
-```
-Java
-```Java
-weloopWebView = findViewById(R.id.webview)
-```
-
-In order to invoke WeLoop you have two options. 
-
-1. You provide the user identity. Simply provide your project key, and identity the current user by calling `authenticateUser`.
-
-Kotlin:
-```kotlin
-//fab is the FloatingWeidget view
-weLoopWebView.initialize("YOUR_PROJECT_GUID", fab, this.window, this, YourClass:class.java.name)// from a fragment : activity.window // this is an activity context //YourClass is for the class where Weloop is initialized, nullable
-weLoopWebView.authenticateUser(User(id = "3", email = "toto@gmail.com", firstName = "tata", lastName = "titi"))
 ```
 Java:
 ```java
-//fab is the FloatingWeidget view
-weLoopWebView.initialize("YOUR_PROJECT_GUID", fab, this.getWindow(), this, MainActivityJava.class.getName())// from a fragment : activity.getWindow()// this is an activity context //YourClass is for the class where Weloop is initialized, nullable
-weLoopWebView.authenticateUser(User("3","toto@gmail.com","tata","titi"))
+private String PICKFILE_REQUEST_CODE = 100;
+private ValueCallback<Uri[]> uploadMessage;
 ```
 
-2. You let the user provide its login infos: don't call `authenticateUser``, and the widget will show the login page when it's launched.
-
-```kotlin
-weLoopWebView.initialize("YOUR_PROJECT_GUID", fab, this.getWindow())// from a fragment : activity.getWindow()
-```
-3. Add webChromeClient (for attachment)
-Kotlin:
-```kotlin
-weLoopWebView.webChromeClient = object:WebChromeClient() {
-            override fun onShowFileChooser(webView: WebView, filePathCallback:ValueCallback<Array<Uri>>, fileChooserParams:FileChooserParams):Boolean {
-                val intent = Intent(Intent.ACTION_GET_CONTENT)
-                if (uploadMessage != null){
-                    uploadMessage!!.onReceiveValue(null)
-                    uploadMessage = null
-                }
-                uploadMessage = filePathCallback
-                intent.setType("*/*")
-                startActivityForResult(intent, PICKFILE_REQUEST_CODE)
-                return true
-            }
-        }
-```
-
-Java:
-```Java
-	@Override
-    	protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        weloopWebView.setWebChromeClient(new WebChromeClient() {
-            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams
-                    fileChooserParams) {
-                // make sure there is no existing message
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                if (uploadMessage != null){
-                    uploadMessage.onReceiveValue(null);
-                    uploadMessage = null;
-                }
-                uploadMessage = filePathCallback;
-                intent.setType("*/*");
-                startActivityForResult(intent, PICKFILE_REQUEST_CODE);
-
-                return true;
-            }
-        });
-    }
-```
-
-4. Handle the data in onActivityResult
+2. Handle the data in ```onActivityResult```
 ```kotlin
 override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -197,11 +117,80 @@ Java:
     }
 ```
 
-### Notification
-If you want to get the notification number in real time :  
+### Initialization
+
+1. Add ```webChromeClient``` to your ```webview``` (for attachment)
 Kotlin:
 ```kotlin
-weLoopWebView.addNotificationListener(object : WeLoop.NotificationListener{
+        webview.webChromeClient = object:WebChromeClient() {
+            override fun onShowFileChooser(webView: WebView, filePathCallback:ValueCallback<Array<Uri>>, fileChooserParams:FileChooserParams):Boolean {
+                val intent = Intent(Intent.ACTION_GET_CONTENT)
+                if (uploadMessage != null){
+                    uploadMessage!!.onReceiveValue(null)
+                    uploadMessage = null
+                }
+                uploadMessage = filePathCallback
+                intent.setType("*/*")
+                val PICKFILE_REQUEST_CODE = 100
+                startActivityForResult(intent, PICKFILE_REQUEST_CODE)
+                return true
+            }
+        }
+```
+
+Java:
+```Java
+        webView.setWebChromeClient(new WebChromeClient() {
+            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams
+                    fileChooserParams) {
+                // make sure there is no existing message
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                if (uploadMessage != null){
+                    uploadMessage.onReceiveValue(null);
+                    uploadMessage = null;
+                }
+                uploadMessage = filePathCallback;
+                intent.setType("*/*");
+                startActivityForResult(intent, 100);
+
+                return true;
+            }
+        });
+```
+
+2.a. Initialize and authentication
+Initialize: You must call the ```initialize``` method in order to pass several informations such as the essential webview.
+Authentication user: You can provide the user identity in the code or let the user signin in. Simply provide the identity of the current user by calling `authenticateUser`.
+
+```YourClass``` is the class where ```Weloop``` is initialized, it is a nullable
+```webview``` is your ```Webview``` in your layout (not a ```WeLoop``` component)
+
+Kotlin:
+```kotlin
+weloop.initialize(this.window, YourClass:class.java.name, webview)
+weloop.authenticateUser(User(id = "3", email = "toto@gmail.com", firstName = "tata", lastName = "titi"))
+```
+Java:
+```java
+//fab is the FloatingWeidget view
+weloop.initialize(this.getWindow(), MainActivityJava.class.getName(), webview);
+weloop.authenticateUser(User("3","toto@gmail.com","tata","titi"));
+```
+
+2.b. If you want to let the user signin in don't call ```authenticateUser```, and the webview will show the login page when it's invoked.
+
+### Invocation
+Once weloop is correctly initialized just call the ```invoke``` method
+```kotlin
+weLoop.invoke()
+```
+
+### Notification
+Notifications will be received after the first call of ```invoke()```
+Add the listener:
+Kotlin:
+```kotlin
+weloop.addNotificationListener(object : WeLoop.NotificationListener{
             override fun getNotification(number: Int){
                 //doSomeStuff
             }
@@ -209,7 +198,7 @@ weLoopWebView.addNotificationListener(object : WeLoop.NotificationListener{
 ```
 Java:
 ```java
-weloopWebView.addNotificationListener(new WeLoop.NotificationListener(){
+weloop.addNotificationListener(new WeLoop.NotificationListener(){
             @Override
             public void getNotification(int number){
                 //doSomeStuff
@@ -220,11 +209,22 @@ weloopWebView.addNotificationListener(new WeLoop.NotificationListener(){
 Manually request the notification number:
 Kotlin:
 ```kotlin
-weLoopWebView.requestNotification(email)
+weloop.requestNotification(email)
 ```
 Java:
 ```java
-weLoopWebView.requestNotification(email)
+weloop.requestNotification(email)
+```
+
+Request notification number every 2 minutes
+This method will request notification number every 2 minutes, use it carefully.
+To start requesting:
+```kotlin
+weLoop.startRequestingNotificationsEveryTwoMinutes(email)
+```
+To stop requesting:
+```kotlin
+weLoop.stopRequestingNotificationsEveryTwoMinutes()
 ```
 
 then the ```getNotification``` method of the ```NotificationListener``` will be triggered for the result 
@@ -235,8 +235,26 @@ You can choose between different methods to invoke the WeLoop widget inside your
 
 1. Floating Action Button
 
+If you want to invoke the webview with the floating button :
+fab :
+```xml
+<com.weloop.weloop.FloatingWidget
+        app:badgeBackgroundColor="@color/defaultColorBadge"
+        android:background="@android:color/black"
+        android:id="@+id/fab"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="20dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+```
+
+then init the widget with the preferences:
 ```kotlin
-weLoopWebView.setInvocationMethod(WeLoop.FAB)
+weLoop.initWidgetPreferences(fab)
+```
+finally set the invocationMethod
+```kotlin
+weloop.setInvocationMethod(WeLoop.FAB)
 ```
 
 Customisation options for the button (color, icon, placement) can be done inside your WeLoop project settings.
@@ -244,12 +262,10 @@ Customisation options for the button (color, icon, placement) can be done inside
 2. Manual
 
 ```kotlin 
-weLoopWebView.setInvocationMethod(WeLoop.MANUAL)
+weloop.setInvocationMethod(WeLoop.MANUAL)
 
 // Then, in your own button or control:
-
-weLoopWebView.invoke()
-
+weloop.invoke()
 ```
 
 ## License
