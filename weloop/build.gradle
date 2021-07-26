@@ -5,9 +5,9 @@ apply plugin: 'signing'
 apply plugin: 'maven-publish'
 
 repositories {
+    maven { url "https://plugins.gradle.org/m2/" }
     mavenCentral()
     google()
-    jcenter()
     maven { url "https://jitpack.io" }
 }
 
