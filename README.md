@@ -29,14 +29,14 @@ allprojects {
 
 Add the dependency in your build.gradle (app level)
 ```gradle
-    implementation 'io.github.WeLoopTeam:weloop:2.0.1'
+implementation 'io.github.WeLoopTeam:weloop:2.0.1'
 ```
 
 ### Updating the manifest
 
 ```xml
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 ```
 Do not forget to check the permission at the runtime : https://developer.android.com/training/permissions/requesting
 
@@ -57,7 +57,7 @@ If your app minSDK < 23 ; Put this in the parent activity of the weloop webview:
 
 Java:
 ```java
-@Override
+    @Override
     public void applyOverrideConfiguration(Configuration overrideConfiguration) {
         if (Build.VERSION.SDK_INT < 23) {
             return;
@@ -76,7 +76,8 @@ override fun applyOverrideConfiguration(overrideConfiguration: Configuration) {
 ```
 
 
-### Init your uploadMessage (for attachment) :  
+### Init your uploadMessage (for attachment) :
+
 1. Declare the variable
 
 kotlin:
@@ -91,10 +92,11 @@ private ValueCallback<Uri[]> uploadMessage;
 ```
 
 2. Handle the data in ```onActivityResult```
+
 ```kotlin
-override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == PICKFILE_REQUEST_CODE) {
+        if (requestCode == 100) {
             if (uploadMessage == null) return
             uploadMessage?.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data));
             uploadMessage = null
@@ -106,18 +108,19 @@ Java:
 ```Java
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data){
-	super.onActivityResult(requestCode, resultCode, data)
-	if (requestCode == PICKFILE_REQUEST_CODE) {
-            if (uploadMessage == null) return
-            uploadMessage.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data));
-            uploadMessage = null
-        }
-    }
+		super.onActivityResult(requestCode, resultCode, data)
+		if (requestCode == PICKFILE_REQUEST_CODE) {
+            		if (uploadMessage == null) return
+            		uploadMessage.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data));
+            		uploadMessage = null
+        	}
+    	}
 ```
 
 ### Initialization
 
 1. Add ```webChromeClient``` to your ```webview``` (for attachment)
+
 Kotlin:
 ```kotlin
         webview.webChromeClient = object:WebChromeClient() {
@@ -157,7 +160,8 @@ Java:
 ```
 
 2.a. Initialize and authentication
-Initialize: You must call the ```initialize``` method in order to pass several informations such as the essential webview.
+
+Initialize: You must call the ```initialize``` method in order to pass several informations such as the essential webview.  
 Authentication user: You can provide the user identity in the code or let the user signin in. Simply provide the identity of the current user by calling `authenticateUser`.
 
 ```YourClass``` is the class where ```Weloop``` is initialized, it is a nullable
@@ -175,7 +179,9 @@ weloop.initialize(this.getWindow(), MainActivityJava.class.getName(), webview);
 weloop.authenticateUser(User("3","toto@gmail.com","tata","titi"));
 ```
 
-2.b. If you want to let the user signin in don't call ```authenticateUser```, and the webview will show the login page when it's invoked.
+2.b.
+
+If you want to let the user signin in don't call ```authenticateUser```, and the webview will show the login page when it's invoked.
 
 ### Invocation
 Once weloop is correctly initialized just call the ```invoke``` method
@@ -184,8 +190,8 @@ weLoop.invoke()
 ```
 
 ### Notification
-Notifications will be received after the first call of ```invoke()```
-Add the listener:
+Notifications will be received after the first call of ```invoke()```  
+Add the listener:  
 Kotlin:
 ```kotlin
 weloop.addNotificationListener(object : WeLoop.NotificationListener{
@@ -214,8 +220,8 @@ Java:
 weloop.requestNotification(email)
 ```
 
-Request notification number every 2 minutes
-This method will request notification number every 2 minutes, use it carefully.
+Request notification number every 2 minutes  
+This method will request notification number every 2 minutes, use it carefully.  
 To start requesting:
 ```kotlin
 weLoop.startRequestingNotificationsEveryTwoMinutes(email)
