@@ -17,7 +17,13 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.tabs.TabLayout
 import com.weloop.weloop.WeLoop
 import com.weloop.weloop.model.User
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_main.buttonNotif
+import kotlinx.android.synthetic.main.activity_main.buttonStartNotifLoop
+import kotlinx.android.synthetic.main.activity_main.buttonStopNotifLoop
+import kotlinx.android.synthetic.main.activity_main.fab
+import kotlinx.android.synthetic.main.activity_main.tabs
+import kotlinx.android.synthetic.main.activity_main.tvManualInvocation
+import kotlinx.android.synthetic.main.activity_main.webview
 
 class MainActivity : AppCompatActivity() {
 
@@ -45,7 +51,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         weLoop.initialize(window, MainActivity::class.java.name, webview)
-        //weLoop.initWidgetPreferences(fab)
+        weLoop.initWidgetPreferences(fab)
         weLoop.authenticateUser(User(id = "4", email = email, firstName = "John", lastName = "Doe"))
         weLoop.addNotificationListener(object : WeLoop.NotificationListener{
             override fun getNotification(number: Int){
