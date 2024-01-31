@@ -20,29 +20,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
 
-        <com.google.android.material.tabs.TabLayout
-            android:layout_marginTop="20dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginStart="10dp"
-            app:tabTextColor="@android:color/white"
-            android:id="@+id/tabs"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <com.google.android.material.tabs.TabItem
-                android:id="@+id/tab_1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="manual"/>
-
-            <com.google.android.material.tabs.TabItem
-                android:id="@+id/tab_2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="fab"/>
-
-        </com.google.android.material.tabs.TabLayout>
-
         <androidx.appcompat.widget.AppCompatButton
             android:layout_marginEnd="20dp"
             android:layout_marginStart="20dp"
@@ -54,6 +31,20 @@
             android:textSize="20sp"
             android:layout_gravity="center_horizontal"
             android:text="manual invocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:layout_marginEnd="20dp"
+            android:layout_marginStart="20dp"
+            android:padding="10dp"
+            android:background="@color/defaultColorBadge"
+            android:id="@+id/tvTriggerFab"
+            android:layout_marginTop="50dp"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:layout_gravity="center_horizontal"
+            android:text="show/hide fab"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 

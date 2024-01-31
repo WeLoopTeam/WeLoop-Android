@@ -15,15 +15,9 @@ import android.webkit.WebView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.tabs.TabLayout
+import com.weloop.sample.databinding.ActivityMainBinding
 import com.weloop.weloop.WeLoop
 import com.weloop.weloop.model.User
-import kotlinx.android.synthetic.main.activity_main.buttonNotif
-import kotlinx.android.synthetic.main.activity_main.buttonStartNotifLoop
-import kotlinx.android.synthetic.main.activity_main.buttonStopNotifLoop
-import kotlinx.android.synthetic.main.activity_main.fab
-import kotlinx.android.synthetic.main.activity_main.tabs
-import kotlinx.android.synthetic.main.activity_main.tvManualInvocation
-import kotlinx.android.synthetic.main.activity_main.webview
 
 class MainActivity : AppCompatActivity() {
 
@@ -32,11 +26,14 @@ class MainActivity : AppCompatActivity() {
     private var email = "toto@email.fr"
     private var apiKey = "e19340c0-b453-11e9-8113-1d4bacf0614e"
 
+    private lateinit var viewBinding: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        viewBinding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(viewBinding.root)
         weLoop = WeLoop(this, apiKey)
-        webview.webChromeClient = object:WebChromeClient() {
+        viewBinding.webview.webChromeClient = object:WebChromeClient() {
             override fun onShowFileChooser(webView: WebView, filePathCallback:ValueCallback<Array<Uri>>, fileChooserParams:FileChooserParams):Boolean {
                 val intent = Intent(Intent.ACTION_GET_CONTENT)
                 if (uploadMessage != null){
@@ -50,8 +47,9 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
         }
-        weLoop.initialize(window, MainActivity::class.java.name, webview)
-        weLoop.initWidgetPreferences(fab)
+        weLoop.initialize(window, MainActivity::class.java.name, viewBinding.webview)
+        weLoop.registerForPushNotification(this, "first", " last", "email", "language")
+        weLoop.initWidgetPreferences(viewBinding.fab)
         weLoop.authenticateUser(User(id = "4", email = email, firstName = "John", lastName = "Doe"))
         weLoop.addNotificationListener(object : WeLoop.NotificationListener{
             override fun getNotification(number: Int){
@@ -60,17 +58,17 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, "NOTIF: $number", Toast.LENGTH_SHORT).show()
             }
         })
-        buttonStartNotifLoop.setOnClickListener {
+        viewBinding.buttonStartNotifLoop.setOnClickListener {
             weLoop.startRequestingNotificationsEveryTwoMinutes(email)
         }
-        buttonStopNotifLoop.setOnClickListener {
+        viewBinding.buttonStopNotifLoop.setOnClickListener {
             weLoop.stopRequestingNotificationsEveryTwoMinutes()
         }
         initListeners()
         if (Build.VERSION.SDK_INT >= 23){
             askForPermissions()
         }
-        buttonNotif.setOnClickListener {
+        viewBinding.buttonNotif.setOnClickListener {
             weLoop.requestNotification(email)
         }
     }
@@ -83,27 +81,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initListeners(){
-        tvManualInvocation.setOnClickListener {
-            if (tabs.selectedTabPosition == 0) {
-                weLoop.invoke()
-            }
+        viewBinding.tvManualInvocation.setOnClickListener {
+            weLoop.invoke()
         }
-        tabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabReselected(p0: TabLayout.Tab?) {
-
-            }
-
-            override fun onTabSelected(p0: TabLayout.Tab?) {
-                when (p0!!.position) {
-                    0 -> weLoop.setInvocationMethod(WeLoop.MANUAL)
-                    1 -> weLoop.setInvocationMethod(WeLoop.FAB)
-                }
-            }
-
-            override fun onTabUnselected(p0: TabLayout.Tab?) {
-
-            }
-        })
+        viewBinding.tvTriggerFab.setOnClickListener {
+            weLoop.setInvocationMethod(WeLoop.FAB)
+        }
     }
 
     private fun askForPermissions() {
@@ -142,8 +125,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if (webview.visibility == View.VISIBLE){
-            webview.visibility = View.GONE
+        if (viewBinding.webview.visibility == View.VISIBLE){
+            viewBinding.webview.visibility = View.GONE
         }
         else {
             super.onBackPressed()
