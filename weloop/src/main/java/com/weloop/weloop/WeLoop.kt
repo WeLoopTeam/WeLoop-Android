@@ -15,9 +15,11 @@ import android.media.RingtoneManager
 import android.os.AsyncTask
 import android.os.Build
 import android.os.Environment
+import android.provider.Telephony.Mms.Intents
 import android.util.Base64
 import android.util.DisplayMetrics
 import android.util.Log
+import android.util.Patterns
 import android.view.Gravity
 import android.view.View
 import android.view.Window
@@ -44,6 +46,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.pushy.sdk.Pushy
+import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.util.Date
 
@@ -69,14 +72,16 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
 
     private var job: Job? = null
     private val scope = CoroutineScope(Dispatchers.IO)
-
-    private var activity: Activity? = null
+    private lateinit var payloadReceiver: BroadcastReceiver
+    private val pushyBroadcastReceiver = PushReceiver()
+    private var notificationUrl: String? = null
 
     fun initialize(
         window: Window,
         weloopLocation: String?,
         webView: WebView
     ) {
+        Timber.plant(Timber.DebugTree())
         mWebView = webView
         mWebView.isFocusableInTouchMode = true
         mWebView.isFocusable = true
@@ -111,7 +116,7 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
         scope.launch {
             val response = ApiServiceImp.getWidgetPreferences(mApiKey)
 
-            if (response.isSuccessful){
+            if (response.isSuccessful) {
                 response.body()?.let {
                     if (it.widgetPrimaryColor != null) {
                         mFloatingWidget.backgroundTintList = ColorStateList.valueOf(
@@ -149,7 +154,7 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
 
                                 override fun onLoadCleared(placeholder: Drawable?) {
                                     // this is called when imageView is cleared on lifecycle call or for
-                                    // some other reason.
+                                    // some other reasons.
                                     // if you are referencing the bitmap somewhere else too other than this imageView
                                     // clear it here as you can no longer have the bitmap
                                 }
@@ -179,16 +184,21 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
                         mFloatingWidget.visibility = View.VISIBLE
                     }
                 }
-            }
-            else {
-                Log.e(TAG, "error during initialization")
+            } else {
+                Timber.e("error during initialization")
             }
         }
     }
 
-    fun registerForPushNotification(activity: Activity, firstName: String, lastName: String, email: String, language: String) {
+    fun registerPushNotification(
+        activity: Activity,
+        firstName: String,
+        lastName: String,
+        email: String,
+        language: String
+    ) {
         scope.launch {
-            val deviceToken = Pushy.register(activity)
+            val deviceToken = Pushy.register(mContext)
             val response = ApiServiceImp.registerDeviceForNotification(
                 registrationInfo = RegistrationInfo(
                     firstName = firstName,
@@ -199,51 +209,77 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
                 ),
                 apiKey = mApiKey
             )
-            if (!response.isSuccessful){
-                Log.e(TAG, "failed to register device for notification")
+            if (!response.isSuccessful) {
+                Timber.e( "failed to register device for notification")
             }
-            val broadcastReceiver = PushReceiver()
-            broadcastReceiver.initActivity(activity)
-            activity.registerReceiver(broadcastReceiver, IntentFilter())
+            mContext.registerReceiver(pushyBroadcastReceiver, IntentFilter())
 
             val filter = IntentFilter()
-            filter.addAction("service.to.activity.transfer")
-            val updateUIReciver: BroadcastReceiver
+            filter.addAction(INTENT_FILTER_PUSHY_RECEIVER_TO_WELOOP)
 
 
-            updateUIReciver = object : BroadcastReceiver() {
+            payloadReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
-                    //UI update here
-                    displayNotification(intent.getStringExtra("number").toString(), activity)
+                    intent.getStringExtra(NOTIFICATION_TITLE)?.let { title ->
+                        intent.getStringExtra(NOTIFICATION_MESSAGE)?.let { message ->
+                            notificationUrl = intent.getStringExtra(NOTIFICATION_URL)
+                            displayNotification(
+                                notificationTitle = title,
+                                notificationMessage = message,
+                                activity
+                            )
+                        }
+                    }
                 }
             }
 
-            activity.registerReceiver(updateUIReciver, filter)
+            mContext.registerReceiver(payloadReceiver, filter)
         }
     }
 
-    private fun displayNotification(notificationText: String, activity: Activity) {
-        // Prepare a notification with vibration, sound and lights
+    fun unregisterPushNotification() {
+        mContext.unregisterReceiver(payloadReceiver)
+        mContext.unregisterReceiver(pushyBroadcastReceiver)
+    }
+
+    fun redirectToWeLoopFromPushNotification() {
+        notificationUrl?.let {
+            Timber.e("notification url: $notificationUrl")
+            mWebView.visibility = View.VISIBLE
+            mWebView.post { mWebView.loadUrl(it) }
+        }
+    }
+
+    private fun displayNotification(
+        notificationTitle: String,
+        notificationMessage: String,
+        activity: Activity
+    ) {
+        val activityIntent = Intent(mContext, activity::class.java)
+        activityIntent.action = INTENT_FILTER_WELOOP_NOTIFICATION
+        activityIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
         val builder = NotificationCompat.Builder(mContext)
             .setAutoCancel(true)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle("title")
-            .setContentText(notificationText)
+            .setContentTitle(notificationTitle)
+            .setContentText(notificationMessage)
             .setLights(Color.RED, 1000, 1000)
             .setVibrate(longArrayOf(0, 400, 250, 400))
             .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-         .setContentIntent(PendingIntent.getActivity(mContext, 0, Intent(mContext, activity::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
+            .setContentIntent(
+                PendingIntent.getActivity(
+                    mContext,
+                    0,
+                    activityIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+            )
 
-        // Automatically configure a Notification Channel for devices running Android O+
         Pushy.setNotificationChannel(builder, mContext)
 
-        // Get an instance of the NotificationManager service
-        val notificationManager = mContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager =
+            mContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // Build the notification and display it
-        //
-        // Use a random notification ID so multiple
-        // notifications don't overwrite each other
         notificationManager.notify((Math.random() * 100000).toInt(), builder.build())
     }
 
@@ -254,6 +290,7 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
                     mFloatingWidget.visibility = View.VISIBLE
                 }
             }
+
             else -> {
                 if (::mFloatingWidget.isInitialized) {
                     mFloatingWidget.visibility = View.GONE
@@ -320,27 +357,6 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
         })
     }
 
-    internal class TakeScreenshotTask(val weLoop: WeLoop, val bitmap: Bitmap) :
-        AsyncTask<Void, Void, String>() {
-        override fun doInBackground(vararg params: Void?): String? {
-            val byteArrayOutputStream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
-            val byteArray = byteArrayOutputStream.toByteArray()
-            return Base64.encodeToString(byteArray, Base64.DEFAULT)
-        }
-
-        override fun onPostExecute(result: String?) {
-            super.onPostExecute(result)
-            weLoop.screenshot = result!!
-            if (weLoop.screenShotAsked) {
-                weLoop.mWebView.post {
-                    weLoop.mWebView.loadUrl("javascript:getCapture('data:image/jpg;base64, ${weLoop.screenshot}')"); weLoop.screenShotAsked =
-                    false
-                }
-            }
-        }
-    }
-
     fun invoke() {
         if (!isLoaded) {
             loadHome()
@@ -348,7 +364,7 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
         if (::mFloatingWidget.isInitialized) {
             mFloatingWidget.visibility = View.GONE
         }
-        TakeScreenshotTask(this, takeScreenshot()!!).execute()
+        takeScreenshot()
         mWebView.visibility = View.VISIBLE
         if (shouldShowDialog) {
             dialog = SweetAlertDialog(mContext, SweetAlertDialog.PROGRESS_TYPE)
@@ -357,21 +373,28 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
         }
     }
 
-    private fun takeScreenshot(): Bitmap? {
-        val now = Date()
-        android.text.format.DateFormat.format("yyyy-MM-dd_hh:mm:ss", now)
+    private fun takeScreenshot() {
         try {
-            // image naming and path  to include sd card  appending name you choose for file
-            val mPath = Environment.getExternalStorageDirectory().toString() + "/" + now + ".jpg"
-
             // create bitmap screen capture
             val v1 = mWindow.decorView.rootView
             v1.setDrawingCacheEnabled(true)
-            return Bitmap.createBitmap(v1.getDrawingCache())
+            scope.launch {
+                val bitmap = Bitmap.createBitmap(v1.getDrawingCache())
+                val byteArrayOutputStream = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+                val byteArray = byteArrayOutputStream.toByteArray()
+                val result = Base64.encodeToString(byteArray, Base64.DEFAULT)
+                screenshot = result!!
+                if (screenShotAsked) {
+                    mWebView.post {
+                        mWebView.loadUrl("javascript:getCapture('data:image/jpg;base64, ${screenshot}')")
+                        screenShotAsked = false
+                    }
+                }
+            }
         } catch (e: Throwable) {
             e.printStackTrace()
         }
-        return null
     }
 
     private fun loadHome() {
@@ -379,7 +402,7 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
     }
 
     fun authenticateUser(user: User) {
-        if (android.util.Patterns.EMAIL_ADDRESS.matcher(user.email).matches()) {
+        if (Patterns.EMAIL_ADDRESS.matcher(user.email).matches()) {
             val str = user.email + "|" + user.firstName + "|" + user.lastName + "|" + user.id
             mToken = AES256Cryptor.encrypt(str, mApiKey)!!
         } else {
@@ -414,13 +437,12 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
             scope.launch {
                 val result = ApiServiceImp.requestNotification(email, mApiKey)
 
-                if (result.isSuccessful){
+                if (result.isSuccessful) {
                     result.body()?.let {
                         mNotificationListener.getNotification(it.count)
                     }
-                }
-                else {
-                    Log.e(TAG, "error occurred while requesting notification")
+                } else {
+                    Timber.e( "error occurred while requesting notification")
                 }
 
             }
@@ -442,7 +464,7 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
     companion object {
         const val MANUAL = 0
         const val FAB = 1
+        const val INTENT_FILTER_WELOOP_NOTIFICATION = "com.weloop.notification"
         private const val URL = "https://widget.weloop.io/home?appGuid="
-        private const val TAG = "WeLoop"
     }
 }
