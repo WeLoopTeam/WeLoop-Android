@@ -11,7 +11,7 @@ import android.webkit.WebView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.weloop.weloop.FloatingWidget;
+import com.weloop.weloop.SideWidget;
 import com.weloop.weloop.WeLoop;
 import com.weloop.weloop.model.User;
 
@@ -19,9 +19,10 @@ class MainActivityJava extends AppCompatActivity {
 
     private ValueCallback<Uri[]> uploadMessage;
     WebView webView = findViewById(R.id.webview);
-    FloatingWidget fab = findViewById(R.id.fab);
+    SideWidget sideWidget = findViewById(R.id.side_widget);
     String apiKey = "e19340c0-b453-11e9-8113-1d4bacf0614e";
     private WeLoop weLoop;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,7 +32,7 @@ class MainActivityJava extends AppCompatActivity {
                     fileChooserParams) {
                 // make sure there is no existing message
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                if (uploadMessage != null){
+                if (uploadMessage != null) {
                     uploadMessage.onReceiveValue(null);
                     uploadMessage = null;
                 }
@@ -42,13 +43,17 @@ class MainActivityJava extends AppCompatActivity {
                 return true;
             }
         });
-        weLoop.initialize(getWindow(), null, webView);
-        weLoop.initWidgetPreferences(fab);
+        weLoop.initialize(
+                "test@email.com",
+                getWindow(),
+                null,
+                sideWidget,
+                webView);
         weLoop.authenticateUser(new User("4", "toto@email.fr", "John", "Doe"));
         MainActivityJava.class.getName();
-        weLoop.addNotificationListener(new WeLoop.NotificationListener(){
+        weLoop.addNotificationListener(new WeLoop.NotificationListener() {
             @Override
-            public void getNotification(int number){
+            public void getNotification(int number) {
                 //doSomeStuff
             }
         });

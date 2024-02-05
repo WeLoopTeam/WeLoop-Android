@@ -1,5 +1,6 @@
 package com.weloop.weloop
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -7,32 +8,19 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.graphics.drawable.Drawable
 import android.media.RingtoneManager
-import android.os.AsyncTask
 import android.os.Build
-import android.os.Environment
-import android.provider.Telephony.Mms.Intents
 import android.util.Base64
 import android.util.DisplayMetrics
-import android.util.Log
 import android.util.Patterns
-import android.view.Gravity
 import android.view.View
 import android.view.Window
 import android.webkit.WebView
-import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat.getColor
 import cn.pedant.SweetAlert.SweetAlertDialog
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
 import com.google.gson.Gson
 import com.weloop.weloop.model.DeviceInfo
 import com.weloop.weloop.model.NotificationListenerNotInitializedException
@@ -43,22 +31,20 @@ import com.weloop.weloop.utils.AES256Cryptor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.pushy.sdk.Pushy
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
-import java.util.Date
 
 
 /* Created by *-----* Alexandre Thauvin *-----* */
 
 class WeLoop(private var mContext: Context, private var mApiKey: String) {
-    private var mCurrentInvocationMethod = 0
-    private lateinit var mFloatingWidget: FloatingWidget
+    private var mSideWidget: SideWidget? = null
     private var webViewInterface = WebAppInterface()
     private lateinit var mToken: String
-    private var isPreferencesLoaded = false
     private lateinit var mWindow: Window
     private var screenshot: String = ""
     private var screenShotAsked = false
@@ -75,11 +61,14 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
     private lateinit var payloadReceiver: BroadcastReceiver
     private val pushyBroadcastReceiver = PushReceiver()
     private var notificationUrl: String? = null
+    private var shouldSideWidgetBeDisplayed = false
 
     fun initialize(
+        email: String,
         window: Window,
         weloopLocation: String?,
-        webView: WebView
+        sideWidget: SideWidget? = null,
+        webView: WebView,
     ) {
         Timber.plant(Timber.DebugTree())
         mWebView = webView
@@ -95,6 +84,9 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
 
         initWebAppListener()
 
+        mSideWidget = sideWidget
+        mSideWidget?.setOnClickListener { invoke() }
+
         deviceInfo.screenHeight = height.toString()
         deviceInfo.screenWidth = width.toString()
         deviceInfo.weloopLocation = if (deviceInfo.weloopLocation.isNullOrEmpty()) {
@@ -106,90 +98,27 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
 
         mWindow = window
         mWebView.addJavascriptInterface(webViewInterface, "Android")
-    }
 
-    fun initWidgetPreferences(floatingWidget: FloatingWidget) {
-        mFloatingWidget = floatingWidget
-        mFloatingWidget.setOnClickListener {
-            invoke()
-        }
         scope.launch {
-            val response = ApiServiceImp.getWidgetPreferences(mApiKey)
+            val response = ApiServiceImp.getWidgetVisibility(
+                email = email,
+                apiKey = mApiKey
+            )
 
             if (response.isSuccessful) {
                 response.body()?.let {
-                    if (it.widgetPrimaryColor != null) {
-                        mFloatingWidget.backgroundTintList = ColorStateList.valueOf(
-                            Color.rgb(
-                                it.widgetPrimaryColor!!["r"]!!.toInt(),
-                                it.widgetPrimaryColor!!["g"]!!.toInt(),
-                                it.widgetPrimaryColor!!["b"]!!.toInt()
-                            )
-                        )
-                    } else {
-                        if (Build.VERSION.SDK_INT in 21..22) {
-                            mFloatingWidget.backgroundTintList =
-                                ColorStateList.valueOf(
-                                    getColor(
-                                        mContext,
-                                        R.color.defaultColorWidget
-                                    )
-                                )
-                        } else {
-                            mFloatingWidget.backgroundTintList =
-                                ColorStateList.valueOf(mContext.getColor(R.color.defaultColorWidget))
-                        }
-                    }
-                    if (it.widgetIcon != null) {
-                        Glide.with(mContext)
-                            .asBitmap()
-                            .load(it.widgetIcon)
-                            .into(object : CustomTarget<Bitmap>() {
-                                override fun onResourceReady(
-                                    resource: Bitmap,
-                                    transition: Transition<in Bitmap>?
-                                ) {
-                                    floatingWidget.setImageBitmap(resource)
-                                }
-
-                                override fun onLoadCleared(placeholder: Drawable?) {
-                                    // this is called when imageView is cleared on lifecycle call or for
-                                    // some other reasons.
-                                    // if you are referencing the bitmap somewhere else too other than this imageView
-                                    // clear it here as you can no longer have the bitmap
-                                }
-                            })
-                    }
-                    if (it.widgetPosition.equals("right", ignoreCase = true)) {
-                        val params = CoordinatorLayout.LayoutParams(
-                            LinearLayout.LayoutParams.WRAP_CONTENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT
-                        ).apply {
-                            setMargins(0, 0, 40, 40)
-                            gravity = Gravity.END or Gravity.BOTTOM
-                        }
-                        mFloatingWidget.layoutParams = params
-                    } else {
-                        val params = CoordinatorLayout.LayoutParams(
-                            LinearLayout.LayoutParams.WRAP_CONTENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT
-                        ).apply {
-                            setMargins(40, 0, 0, 40)
-                            gravity = Gravity.START or Gravity.BOTTOM
-                        }
-                        mFloatingWidget.layoutParams = params
-                    }
-                    isPreferencesLoaded = true
-                    if (mCurrentInvocationMethod == FAB) {
-                        mFloatingWidget.visibility = View.VISIBLE
-                    }
+                    shouldSideWidgetBeDisplayed = it.fab
+                    triggerWidgetVisibility()
                 }
             } else {
-                Timber.e("error during initialization")
+                Timber.e("error when getting widget visibility")
             }
         }
+        shouldSideWidgetBeDisplayed = true
+        triggerWidgetVisibility()
     }
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     fun registerPushNotification(
         activity: Activity,
         firstName: String,
@@ -197,7 +126,7 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
         email: String,
         language: String
     ) {
-        scope.launch {
+        scope.launch(SupervisorJob()) {
             val deviceToken = Pushy.register(mContext)
             val response = ApiServiceImp.registerDeviceForNotification(
                 registrationInfo = RegistrationInfo(
@@ -210,13 +139,12 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
                 apiKey = mApiKey
             )
             if (!response.isSuccessful) {
-                Timber.e( "failed to register device for notification")
+                Timber.e("failed to register device for notification")
             }
             mContext.registerReceiver(pushyBroadcastReceiver, IntentFilter())
 
             val filter = IntentFilter()
             filter.addAction(INTENT_FILTER_PUSHY_RECEIVER_TO_WELOOP)
-
 
             payloadReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
@@ -233,7 +161,11 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
                 }
             }
 
-            mContext.registerReceiver(payloadReceiver, filter)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                mContext.registerReceiver(payloadReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                mContext.registerReceiver(payloadReceiver, filter)
+            }
         }
     }
 
@@ -283,20 +215,11 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
         notificationManager.notify((Math.random() * 100000).toInt(), builder.build())
     }
 
-    private fun renderInvocation() {
-        when (mCurrentInvocationMethod) {
-            FAB -> {
-                if (::mFloatingWidget.isInitialized && isPreferencesLoaded) {
-                    mFloatingWidget.visibility = View.VISIBLE
-                }
-            }
-
-            else -> {
-                if (::mFloatingWidget.isInitialized) {
-                    mFloatingWidget.visibility = View.GONE
-                }
-            }
-        }
+    private fun triggerWidgetVisibility() {
+        if (shouldSideWidgetBeDisplayed) {
+            mSideWidget?.visibility = View.VISIBLE
+        } else
+            mSideWidget?.visibility = View.GONE
     }
 
     private fun initWebAppListener() {
@@ -304,8 +227,8 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
             override fun closePanel() {
                 mWebView.post {
                     mWebView.visibility = View.GONE
-                    if (::mFloatingWidget.isInitialized && mCurrentInvocationMethod == FAB) {
-                        mFloatingWidget.visibility = View.VISIBLE
+                    if (shouldSideWidgetBeDisplayed) {
+                        mSideWidget?.visibility = View.VISIBLE
                     }
                 }
             }
@@ -332,9 +255,7 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
             }
 
             override fun setNotificationCount(number: Int) {
-                if (::mFloatingWidget.isInitialized) {
-                    mFloatingWidget.count = number
-                }
+                mSideWidget?.showNotificationDot(number > 0)
                 if (::mNotificationListener.isInitialized) {
                     mNotificationListener.getNotification(number)
                 }
@@ -361,9 +282,7 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
         if (!isLoaded) {
             loadHome()
         }
-        if (::mFloatingWidget.isInitialized) {
-            mFloatingWidget.visibility = View.GONE
-        }
+        mSideWidget?.visibility = View.GONE
         takeScreenshot()
         mWebView.visibility = View.VISIBLE
         if (shouldShowDialog) {
@@ -442,17 +361,12 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
                         mNotificationListener.getNotification(it.count)
                     }
                 } else {
-                    Timber.e( "error occurred while requesting notification")
+                    Timber.e("error occurred while requesting notification")
                 }
 
             }
         } else
             throw NotificationListenerNotInitializedException()
-    }
-
-    fun setInvocationMethod(invocationMethod: Int) {
-        mCurrentInvocationMethod = invocationMethod
-        renderInvocation()
     }
 
 
@@ -462,8 +376,6 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
 
 
     companion object {
-        const val MANUAL = 0
-        const val FAB = 1
         const val INTENT_FILTER_WELOOP_NOTIFICATION = "com.weloop.notification"
         private const val URL = "https://widget.weloop.io/home?appGuid="
     }

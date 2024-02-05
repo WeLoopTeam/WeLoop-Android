@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:background="#3C4146"
@@ -31,20 +31,6 @@
             android:textSize="20sp"
             android:layout_gravity="center_horizontal"
             android:text="manual invocation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:layout_marginEnd="20dp"
-            android:layout_marginStart="20dp"
-            android:padding="10dp"
-            android:background="@color/defaultColorBadge"
-            android:id="@+id/tvTriggerFab"
-            android:layout_marginTop="50dp"
-            android:textColor="@android:color/white"
-            android:textSize="20sp"
-            android:layout_gravity="center_horizontal"
-            android:text="show/hide fab"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
@@ -91,13 +77,13 @@
             android:layout_height="wrap_content"/>
     </LinearLayout>
 
-    <com.weloop.weloop.FloatingWidget
-        android:visibility="gone"
+    <com.weloop.weloop.SideWidget
+        android:layout_centerVertical="true"
+        android:layout_alignParentEnd="true"
+        android:visibility="visible"
         app:badgeBackgroundColor="@color/defaultColorBadge"
-        android:id="@+id/fab"
-        android:layout_gravity="bottom|start"
-        android:layout_margin="20dp"
+        android:id="@+id/side_widget"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</RelativeLayout>

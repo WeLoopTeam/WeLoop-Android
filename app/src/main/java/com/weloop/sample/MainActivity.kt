@@ -14,15 +14,9 @@ import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.material.tabs.TabLayout
 import com.weloop.sample.databinding.ActivityMainBinding
 import com.weloop.weloop.WeLoop
 import com.weloop.weloop.model.User
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.seconds
 
 class MainActivity : AppCompatActivity() {
 
@@ -56,9 +50,14 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
         }
-        weLoop.initialize(window, MainActivity::class.java.name, viewBinding.webview)
+        weLoop.initialize(
+            email = "test@email.com",
+            window = window,
+            weloopLocation = MainActivity::class.java.name,
+            sideWidget = viewBinding.sideWidget,
+            webView = viewBinding.webview
+        )
         weLoop.registerPushNotification(this, "first", " last", "email", "language")
-        weLoop.initWidgetPreferences(viewBinding.fab)
         weLoop.authenticateUser(User(id = "4", email = email, firstName = "John", lastName = "Doe"))
         weLoop.addNotificationListener(object : WeLoop.NotificationListener {
             override fun getNotification(number: Int) {
@@ -94,9 +93,6 @@ class MainActivity : AppCompatActivity() {
     private fun initListeners() {
         viewBinding.tvManualInvocation.setOnClickListener {
             weLoop.invoke()
-        }
-        viewBinding.tvTriggerFab.setOnClickListener {
-            weLoop.setInvocationMethod(WeLoop.FAB)
         }
     }
 
@@ -164,7 +160,7 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         intent?.let {
-            if (it.action.equals(WeLoop.INTENT_FILTER_WELOOP_NOTIFICATION)){
+            if (it.action.equals(WeLoop.INTENT_FILTER_WELOOP_NOTIFICATION)) {
                 weLoop.redirectToWeLoopFromPushNotification()
             }
         }
