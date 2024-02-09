@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.webkit.ConsoleMessage
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebView
@@ -17,13 +18,15 @@ import androidx.appcompat.app.AppCompatActivity
 import com.weloop.sample.databinding.ActivityMainBinding
 import com.weloop.weloop.WeLoop
 import com.weloop.weloop.model.User
+import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var weLoop: WeLoop
     var uploadMessage: ValueCallback<Array<Uri>>? = null
     private var email = "toto@email.fr"
-    private var apiKey = "e19340c0-b453-11e9-8113-1d4bacf0614e"
+    private var projectId = "0e0ac19d-a929-4d3f-8820-9e0532d5654e"
+    private var apiKey = "apiKey"
 
     private lateinit var viewBinding: ActivityMainBinding
 
@@ -31,7 +34,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
-        weLoop = WeLoop(this, apiKey)
+        weLoop = WeLoop(
+            mContext = this,
+            mProjectId = projectId,
+            mApiKey = apiKey
+        )
+
         viewBinding.webview.webChromeClient = object : WebChromeClient() {
             override fun onShowFileChooser(
                 webView: WebView,
@@ -49,6 +57,15 @@ class MainActivity : AppCompatActivity() {
                 startActivityForResult(intent, PICKFILE_REQUEST_CODE)
                 return true
             }
+
+            override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
+                Timber.e("console message: ${consoleMessage?.message()}")
+                if (consoleMessage?.message()?.contains("Scripts may close only the windows that were opened by them") == true) {
+                    Timber.d("reloading webview")
+                    weLoop.restartWebview()
+                }
+                return super.onConsoleMessage(consoleMessage)
+            }
         }
         weLoop.initialize(
             email = "test@email.com",
@@ -57,7 +74,7 @@ class MainActivity : AppCompatActivity() {
             sideWidget = viewBinding.sideWidget,
             webView = viewBinding.webview
         )
-        weLoop.registerPushNotification(this, "first", " last", "email", "language")
+        weLoop.registerPushNotification(this, "first", " last", email, "language")
         weLoop.authenticateUser(User(id = "4", email = email, firstName = "John", lastName = "Doe"))
         weLoop.addNotificationListener(object : WeLoop.NotificationListener {
             override fun getNotification(number: Int) {
@@ -71,6 +88,7 @@ class MainActivity : AppCompatActivity() {
         }
         viewBinding.buttonStopNotifLoop.setOnClickListener {
             weLoop.stopRequestingNotificationsEveryTwoMinutes()
+            weLoop.unregisterPushNotification()
         }
         initListeners()
         if (Build.VERSION.SDK_INT >= 23) {
@@ -150,6 +168,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
+        weLoop.backButtonHasBeenPressed()
         if (viewBinding.webview.visibility == View.VISIBLE) {
             viewBinding.webview.visibility = View.GONE
         } else {
@@ -167,7 +186,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         weLoop.unregisterPushNotification()
+        super.onDestroy()
     }
 }

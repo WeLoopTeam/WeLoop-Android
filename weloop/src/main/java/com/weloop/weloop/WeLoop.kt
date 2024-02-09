@@ -11,13 +11,17 @@ import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.media.RingtoneManager
+import android.net.http.SslError
 import android.os.Build
 import android.util.Base64
 import android.util.DisplayMetrics
 import android.util.Patterns
 import android.view.View
 import android.view.Window
+import android.webkit.SslErrorHandler
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import cn.pedant.SweetAlert.SweetAlertDialog
@@ -41,7 +45,35 @@ import java.io.ByteArrayOutputStream
 
 /* Created by *-----* Alexandre Thauvin *-----* */
 
-class WeLoop(private var mContext: Context, private var mApiKey: String) {
+class MyWebViewClient : WebViewClient() {
+
+    override fun onReceivedSslError(view: WebView?, handler: SslErrorHandler?, error: SslError?) {
+        // Example: Proceed with SSL error
+        view?.url?.let {
+            if (
+                it.contains("https://front.weloop.dev", ignoreCase = true)
+                || it.contains("https://auth.weloop.dev", ignoreCase = true)
+
+                ) {
+                handler?.proceed()
+            }
+
+        }
+    }
+
+    override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+        Timber.e("url: ${view?.url}")
+        return false
+    }
+}
+
+class WeLoop(
+    private var mContext: Activity,
+    private var mProjectId: String,
+    private val mApiKey: String
+) {
+
+
     private var mSideWidget: SideWidget? = null
     private var webViewInterface = WebAppInterface()
     private lateinit var mToken: String
@@ -77,6 +109,7 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
         mWebView.settings.domStorageEnabled = true
         mWebView.settings.javaScriptCanOpenWindowsAutomatically = true
         mWebView.settings.javaScriptEnabled = true
+        mWebView.webViewClient = MyWebViewClient()
         val displayMetrics = DisplayMetrics()
         window.windowManager.defaultDisplay.getMetrics(displayMetrics)
         val height: Int = displayMetrics.heightPixels
@@ -99,7 +132,7 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
         mWindow = window
         mWebView.addJavascriptInterface(webViewInterface, "Android")
 
-        scope.launch {
+        scope.launch(Dispatchers.Main) {
             val response = ApiServiceImp.getWidgetVisibility(
                 email = email,
                 apiKey = mApiKey
@@ -111,11 +144,12 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
                     triggerWidgetVisibility()
                 }
             } else {
+                // TODO delete
+                shouldSideWidgetBeDisplayed = true
+                triggerWidgetVisibility()
                 Timber.e("error when getting widget visibility")
             }
         }
-        shouldSideWidgetBeDisplayed = true
-        triggerWidgetVisibility()
     }
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
@@ -170,14 +204,17 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
     }
 
     fun unregisterPushNotification() {
+        Pushy.unregister(mContext)
+        Timber.e("Pushy was unregistered")
         mContext.unregisterReceiver(payloadReceiver)
         mContext.unregisterReceiver(pushyBroadcastReceiver)
     }
 
     fun redirectToWeLoopFromPushNotification() {
         notificationUrl?.let {
-            Timber.e("notification url: $notificationUrl")
+            Timber.d("notification url: $notificationUrl")
             mWebView.visibility = View.VISIBLE
+            mSideWidget?.visibility = View.GONE
             mWebView.post { mWebView.loadUrl(it) }
         }
     }
@@ -248,9 +285,9 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
 
             override fun getCurrentUser() {
                 if (this@WeLoop::mToken.isInitialized) {
-                    mWebView.post { mWebView.loadUrl("javascript:GetCurrentUser({ appGuid: '$mApiKey', token: '$mToken'})") }
+                    mWebView.post { mWebView.loadUrl("javascript:GetCurrentUser({ appGuid: '$mProjectId', token: '$mToken'})") }
                 } else {
-                    mWebView.post { mWebView.loadUrl("javascript:GetCurrentUser({ appGuid: '$mApiKey'})") }
+                    mWebView.post { mWebView.loadUrl("javascript:GetCurrentUser({ appGuid: '$mProjectId'})") }
                 }
             }
 
@@ -280,16 +317,19 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
 
     fun invoke() {
         if (!isLoaded) {
+            shouldShowDialog = true
             loadHome()
+            isLoaded = true
         }
         mSideWidget?.visibility = View.GONE
         takeScreenshot()
         mWebView.visibility = View.VISIBLE
-        if (shouldShowDialog) {
-            dialog = SweetAlertDialog(mContext, SweetAlertDialog.PROGRESS_TYPE)
-            dialog.setCancelable(true)
-            dialog.show()
-        }
+        // TODO uncomment
+//        if (shouldShowDialog) {
+//            dialog = SweetAlertDialog(mContext, SweetAlertDialog.PROGRESS_TYPE)
+//            dialog.setCancelable(true)
+//            dialog.show()
+//        }
     }
 
     private fun takeScreenshot() {
@@ -317,13 +357,15 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
     }
 
     private fun loadHome() {
-        mWebView.post { mWebView.loadUrl(URL + mApiKey); shouldShowDialog = true }
+        mWebView.post {
+            mWebView.loadUrl(URL + mProjectId)
+        }
     }
 
     fun authenticateUser(user: User) {
         if (Patterns.EMAIL_ADDRESS.matcher(user.email).matches()) {
             val str = user.email + "|" + user.firstName + "|" + user.lastName + "|" + user.id
-            mToken = AES256Cryptor.encrypt(str, mApiKey)!!
+            mToken = AES256Cryptor.encrypt(str, mProjectId)!!
         } else {
             Toast.makeText(mContext, "email incorrect", Toast.LENGTH_LONG).show()
         }
@@ -369,6 +411,23 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
             throw NotificationListenerNotInitializedException()
     }
 
+    fun backButtonHasBeenPressed() {
+        if (mWebView.visibility == View.VISIBLE) {
+            if (shouldSideWidgetBeDisplayed) {
+                mSideWidget?.visibility = View.VISIBLE
+            }
+        }
+    }
+
+    fun restartWebview() {
+        notificationUrl?.let {
+            mWebView.post {
+                mWebView.loadUrl(it)
+
+            }
+        } ?: loadHome()
+    }
+
 
     interface NotificationListener {
         fun getNotification(number: Int)
@@ -377,6 +436,6 @@ class WeLoop(private var mContext: Context, private var mApiKey: String) {
 
     companion object {
         const val INTENT_FILTER_WELOOP_NOTIFICATION = "com.weloop.notification"
-        private const val URL = "https://widget.weloop.io/home?appGuid="
+        private const val URL = "https://front.weloop.dev/"
     }
 }
