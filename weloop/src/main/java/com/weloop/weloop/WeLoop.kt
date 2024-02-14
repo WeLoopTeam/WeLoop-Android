@@ -1,13 +1,14 @@
 package com.weloop.weloop
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.media.RingtoneManager
@@ -23,7 +24,9 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import cn.pedant.SweetAlert.SweetAlertDialog
 import com.google.gson.Gson
 import com.weloop.weloop.model.DeviceInfo
@@ -227,7 +230,7 @@ class WeLoop(
         val activityIntent = Intent(mContext, activity::class.java)
         activityIntent.action = INTENT_FILTER_WELOOP_NOTIFICATION
         activityIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-        val builder = NotificationCompat.Builder(mContext)
+        val builder = NotificationCompat.Builder(mContext, "WeLoop Notification")
             .setAutoCancel(true)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle(notificationTitle)
@@ -246,10 +249,24 @@ class WeLoop(
 
         Pushy.setNotificationChannel(builder, mContext)
 
-        val notificationManager =
-            mContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        notificationManager.notify((Math.random() * 100000).toInt(), builder.build())
+        with(NotificationManagerCompat.from(mContext)) {
+            if (ActivityCompat.checkSelfPermission(
+                    mContext,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                // public fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>,
+                //                                        grantResults: IntArray)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                Toast.makeText(mContext, "Need notification permission", Toast.LENGTH_SHORT).show()
+                return@with
+            }
+            // notificationId is a unique int for each notification that you must define.
+            notify((Math.random() * 100000).toInt(), builder.build())
+        }
     }
 
     private fun triggerWidgetVisibility() {

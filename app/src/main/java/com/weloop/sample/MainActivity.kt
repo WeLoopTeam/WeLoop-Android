@@ -58,6 +58,7 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
 
+
             override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
                 Timber.e("console message: ${consoleMessage?.message()}")
                 if (consoleMessage?.message()?.contains("Scripts may close only the windows that were opened by them") == true) {

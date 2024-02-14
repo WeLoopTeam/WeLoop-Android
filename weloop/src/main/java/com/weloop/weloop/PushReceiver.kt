@@ -1,14 +1,8 @@
 package com.weloop.weloop
 
-import android.app.Activity
-import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
-import android.media.RingtoneManager
-import androidx.core.app.NotificationCompat
-import me.pushy.sdk.Pushy
 
 internal const val NOTIFICATION_TITLE = "title"
 internal const val NOTIFICATION_MESSAGE = "message"
@@ -35,6 +29,7 @@ class PushReceiver : BroadcastReceiver() {
         local.putExtra(NOTIFICATION_TITLE, notificationTitle)
         local.putExtra(NOTIFICATION_MESSAGE, notificationMessage)
         local.putExtra(NOTIFICATION_URL, notificationUrl)
+        local.setPackage(context.packageName)
         context.sendBroadcast(local)
     }
 }
