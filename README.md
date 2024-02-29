@@ -1,12 +1,12 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.WeLoopTeam/weloop/badge.svg?style=flat-plastic&gav=true)](https://maven-badges.herokuapp.com/maven-central/io.github.WeLoopTeam/weloop)
 
-## Requirements
+# Requirements
 
 minSdkVersion 21
 
-## Setup
+# Setup
 
-### Gradle
+## Gradle
 Add it in your root build.gradle (project level) at the end of repositories:
 ```gradle
 buildscript {
@@ -31,26 +31,31 @@ allprojects {
 
 Add the dependency in your build.gradle (app level)
 ```gradle
-implementation 'io.github.WeLoopTeam:weloop:2.0.1'
+implementation 'io.github.WeLoopTeam:weloop:2.1.0'
 ```
 
-### Updating the manifest
+## Updating the manifest
 
 ```xml
 <uses-permission android:name="android.permission.INTERNET" />
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
+<uses-permission android:name="android.permission.WAKE_LOCK" />
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 ```
 Do not forget to check the permission at the runtime : https://developer.android.com/training/permissions/requesting
 
-## Usage
+# Usage
 
-### Instantiation
-Instantiate the WeLoop object:
+## Instantiation
+Instantiate the WeLoop object (we now need to make a difference between projectId and apiKey):
 ```kotlin
-var weloop = WeLoop(context, apiKey)
+var weloop = WeLoop(context, projectId, apiKey)
 ```
 ```java
-WeLoop = WeLoop(context, apiKey)
+WeLoop = WeLoop(context, projectId, apiKey)
 ```
 
 ### minSDK < 23
@@ -78,7 +83,7 @@ override fun applyOverrideConfiguration(overrideConfiguration: Configuration) {
 ```
 
 
-### Init your uploadMessage (for attachment) :
+## Init your uploadMessage (for attachment) :
 
 1. Declare the variable
 
@@ -98,7 +103,7 @@ private ValueCallback<Uri[]> uploadMessage;
 ```kotlin
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 100) {
+        if (requestCode == PICKFILE_REQUEST_CODE) {
             if (uploadMessage == null) return
             uploadMessage?.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data));
             uploadMessage = null
@@ -119,7 +124,7 @@ Java:
     	}
 ```
 
-### Initialization
+## Initialization
 
 1. Add ```webChromeClient``` to your ```webview``` (for attachment)
 
@@ -137,6 +142,15 @@ Kotlin:
                 val PICKFILE_REQUEST_CODE = 100
                 startActivityForResult(intent, PICKFILE_REQUEST_CODE)
                 return true
+            }
+
+            override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
+                Timber.e("console message: ${consoleMessage?.message()}")
+                if (consoleMessage?.message()?.contains("Scripts may close only the windows that were opened by them") == true) {
+                    Timber.d("reloading webview")
+                    weLoop.restartWebview()
+                }
+                return super.onConsoleMessage(consoleMessage)
             }
         }
 ```
@@ -158,40 +172,107 @@ Java:
 
                 return true;
             }
+
+@Override
+public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+    Timber.e("console message: " + (consoleMessage != null ? consoleMessage.message() : null));
+    if (consoleMessage != null && consoleMessage.message() != null && consoleMessage.message().contains("Scripts may close only the windows that were opened by them")) {
+        Timber.d("reloading webview");
+        weLoop.restartWebview();
+    }
+    return super.onConsoleMessage(consoleMessage);
+}
+
         });
 ```
 
-2.a. Initialize and authentication
+
+### Initialize and authentication
 
 Initialize: You must call the ```initialize``` method in order to pass several informations such as the essential webview.  
 Authentication user: You can provide the user identity in the code or let the user signin in. Simply provide the identity of the current user by calling `authenticateUser`.
 
 ```YourClass``` is the class where ```Weloop``` is initialized, it is a nullable
 ```webview``` is your ```Webview``` in your layout (not a ```WeLoop``` component)
+```email``` is the email of your weloop account, we need that in order to get the side widget visibility 
+```sideWidget``` is the new weloop side widget, you can't control the visibility of it, indeed it depends on who will use your app and the role they have in weloop dashboard
 
 Kotlin:
 ```kotlin
-weloop.initialize(this.window, YourClass:class.java.name, webview)
+weloop.initialize(email, this.window, YourClass:class.java.name, sideWidget, webview)
 weloop.authenticateUser(User(id = "3", email = "toto@gmail.com", firstName = "tata", lastName = "titi"))
 ```
 Java:
 ```java
-//fab is the FloatingWeidget view
-weloop.initialize(this.getWindow(), MainActivityJava.class.getName(), webview);
+weloop.initialize(email, this.getWindow(), MainActivityJava.class.getName(), sideWidget, webview);
 weloop.authenticateUser(User("3","toto@gmail.com","tata","titi"));
 ```
 
-2.b.
+###
 
 If you want to let the user signin in don't call ```authenticateUser```, and the webview will show the login page when it's invoked.
 
-### Invocation
+## Invocation
 Once weloop is correctly initialized just call the ```invoke``` method
 ```kotlin
 weLoop.invoke()
 ```
 
-### Notification
+## Notification
+
+### Push Notifications
+
+You need to register for push notifications:
+```language``` is the language that you want for the notification that will be received by your user.
+The format is ISO 2 letters EN/FR/ES etc...
+```kotlin
+weLoop.registerPushNotification(activity, firstName, lastName, email, "EN")
+```
+
+in order to have the redirection working when the user click on the push notification you need to implement the ```onNewIntent``` method
+```kotlin
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        intent?.let {
+            if (it.action.equals(WeLoop.INTENT_FILTER_WELOOP_NOTIFICATION)) {
+                weLoop.redirectToWeLoopFromPushNotification()
+            }
+        }
+    }
+```
+```java
+@Override
+protected void onNewIntent(Intent intent) {
+    super.onNewIntent(intent);
+    if (intent != null && WeLoop.INTENT_FILTER_WELOOP_NOTIFICATION.equals(intent.getAction())) {
+        weLoop.redirectToWeLoopFromPushNotification();
+    }
+}
+```
+
+### VERY IMPORTANT POINT
+
+You need to unregister from the push notification in order to avoid useless connection when the app is killed or when the user has finished his workflow (log out/unregister etc..)
+
+call ```unregisterPushNotification``` it MUST be called at the end of your workflow (quoted above) AND in your ```onDestroy``` method:
+
+```kotlin
+    override fun onDestroy() {
+        weLoop.unregisterPushNotification()
+        super.onDestroy()
+    }
+```
+```java
+@Override
+protected void onDestroy() {
+    weLoop.unregisterPushNotification();
+    super.onDestroy();
+}
+```
+
+### Notifications number
+
+In order to receive the number of notification you have to implement this callback
 Notifications will be received after the first call of ```invoke()```  
 Add the listener:  
 Kotlin:
@@ -213,6 +294,7 @@ weloop.addNotificationListener(new WeLoop.NotificationListener(){
 ```
 
 Manually request the notification number:
+
 Kotlin:
 ```kotlin
 weloop.requestNotification(email)
@@ -239,41 +321,43 @@ then the ```getNotification``` method of the ```NotificationListener``` will be 
 
 You can choose between different methods to invoke the WeLoop widget inside your application:
 
-1. Floating Action Button
-
-If you want to invoke the webview with the floating button :
-fab :
+If you want to invoke the webview with the side widget button (if the user can according to his role in weloop dashboard) :
+side widget :
 ```xml
-<com.weloop.weloop.FloatingWidget
+    <com.weloop.weloop.SideWidget
+        android:layout_centerVertical="true"
+        android:layout_alignParentEnd="true"
         app:badgeBackgroundColor="@color/defaultColorBadge"
-        android:background="@android:color/black"
-        android:id="@+id/fab"
-        android:layout_gravity="bottom|start"
-        android:layout_margin="20dp"
+        android:id="@+id/side_widget"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 ```
 
-then init the widget with the preferences:
+## Webview visibility handling  
+
+In order to dismiss the webview when the user press the back button:
 ```kotlin
-weLoop.initWidgetPreferences(fab)
+    override fun onBackPressed() {
+        weLoop.backButtonHasBeenPressed()
+        if (viewBinding.webview.visibility == View.VISIBLE) {
+            viewBinding.webview.visibility = View.GONE
+        } else {
+            super.onBackPressed()
+        }
+    }
 ```
-finally set the invocationMethod
-```kotlin
-weloop.setInvocationMethod(WeLoop.FAB)
+```java
+@Override
+public void onBackPressed() {
+    weLoop.backButtonHasBeenPressed();
+    if (viewBinding.webview.getVisibility() == View.VISIBLE) {
+        viewBinding.webview.setVisibility(View.GONE);
+    } else {
+        super.onBackPressed();
+    }
+}
+
 ```
-
-Customisation options for the button (color, icon, placement) can be done inside your WeLoop project settings.
-
-2. Manual
-
-```kotlin 
-weloop.setInvocationMethod(WeLoop.MANUAL)
-
-// Then, in your own button or control:
-weloop.invoke()
-```
-
-## License
+# License
 
 WeLoop is available under the MIT license. See the LICENSE file for more info.
