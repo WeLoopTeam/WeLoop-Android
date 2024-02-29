@@ -80,7 +80,6 @@
     <com.weloop.weloop.SideWidget
         android:layout_centerVertical="true"
         android:layout_alignParentEnd="true"
-        android:visibility="visible"
         app:badgeBackgroundColor="@color/defaultColorBadge"
         android:id="@+id/side_widget"
         android:layout_width="wrap_content"

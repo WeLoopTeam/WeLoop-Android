@@ -20,6 +20,9 @@ import com.weloop.weloop.WeLoop
 import com.weloop.weloop.model.User
 import timber.log.Timber
 
+private const val PICKFILE_REQUEST_CODE = 100
+
+
 class MainActivity : AppCompatActivity() {
 
     private lateinit var weLoop: WeLoop
@@ -53,7 +56,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 uploadMessage = filePathCallback
                 intent.setType("*/*")
-                val PICKFILE_REQUEST_CODE = 100
                 startActivityForResult(intent, PICKFILE_REQUEST_CODE)
                 return true
             }
@@ -156,7 +158,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 100) {
+        if (requestCode == PICKFILE_REQUEST_CODE) {
             if (uploadMessage == null) return
             uploadMessage?.onReceiveValue(
                 WebChromeClient.FileChooserParams.parseResult(
