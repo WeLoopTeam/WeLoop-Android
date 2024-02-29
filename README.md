@@ -273,7 +273,3 @@ weloop.setInvocationMethod(WeLoop.MANUAL)
 // Then, in your own button or control:
 weloop.invoke()
 ```
-
-## License
-
-WeLoop is available under the MIT license. See the LICENSE file for more info.
