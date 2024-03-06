@@ -12,14 +12,12 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.media.RingtoneManager
-import android.net.http.SslError
 import android.os.Build
 import android.util.Base64
 import android.util.DisplayMetrics
 import android.util.Patterns
 import android.view.View
 import android.view.Window
-import android.webkit.SslErrorHandler
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -50,19 +48,19 @@ import java.io.ByteArrayOutputStream
 
 class MyWebViewClient : WebViewClient() {
 
-    override fun onReceivedSslError(view: WebView?, handler: SslErrorHandler?, error: SslError?) {
-        // Example: Proceed with SSL error
-        view?.url?.let {
-            if (
-                it.contains("https://front.weloop.dev", ignoreCase = true)
-                || it.contains("https://auth.weloop.dev", ignoreCase = true)
-
-                ) {
-                handler?.proceed()
-            }
-
-        }
-    }
+//    override fun onReceivedSslError(view: WebView?, handler: SslErrorHandler?, error: SslError?) {
+//        // Example: Proceed with SSL error
+//        view?.url?.let {
+//            if (
+//                it.contains("https://front.weloop.dev", ignoreCase = true)
+//                || it.contains("https://auth.weloop.dev", ignoreCase = true)
+//
+//                ) {
+//                handler?.proceed()
+//            }
+//
+//        }
+//    }
 
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
         Timber.e("url: ${view?.url}")
@@ -75,8 +73,6 @@ class WeLoop(
     private var mProjectId: String,
     private val mApiKey: String
 ) {
-
-
     private var mSideWidget: SideWidget? = null
     private var webViewInterface = WebAppInterface()
     private lateinit var mToken: String
@@ -113,6 +109,7 @@ class WeLoop(
         mWebView.settings.javaScriptCanOpenWindowsAutomatically = true
         mWebView.settings.javaScriptEnabled = true
         mWebView.webViewClient = MyWebViewClient()
+        mWebView.settings.userAgentString = "Mozilla/5.0 (Android 14; Mobile; rv:123.0) Gecko/123.0 Firefox/123.0"
         val displayMetrics = DisplayMetrics()
         window.windowManager.defaultDisplay.getMetrics(displayMetrics)
         val height: Int = displayMetrics.heightPixels
@@ -293,7 +290,8 @@ class WeLoop(
                         mWebView.loadUrl(
                             "javascript:getCapture('data:im      90" +
                                     "; age/jpg;base64, ${screenshot}')"
-                        ); screenShotAsked = false
+                        )
+                        screenShotAsked = false
                     }
                 } else {
                     screenShotAsked = true
@@ -453,6 +451,6 @@ class WeLoop(
 
     companion object {
         const val INTENT_FILTER_WELOOP_NOTIFICATION = "com.weloop.notification"
-        private const val URL = "https://front.weloop.dev/"
+        private const val URL = "https://front.weloop.ai/"
     }
 }

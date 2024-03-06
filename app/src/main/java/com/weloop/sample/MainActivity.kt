@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var weLoop: WeLoop
     var uploadMessage: ValueCallback<Array<Uri>>? = null
     private var email = "toto@email.fr"
-    private var projectId = "0e0ac19d-a929-4d3f-8820-9e0532d5654e"
+    private var projectId = "bd368336-86e5-44a7-8e6f-ebd782d6e2dc"
     private var apiKey = "apiKey"
 
     private lateinit var viewBinding: ActivityMainBinding
