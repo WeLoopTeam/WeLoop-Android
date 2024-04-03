@@ -23,6 +23,6 @@ interface ApiService {
     @GET("/v1/mobile/widget-visibility")
     suspend fun getWidgetVisibility(@Header(AUTH) apiKey: String, @Query("email") email: String): Response<WidgetVisibility>
 
-    @POST("/registerDeviceForNotification")
+    @POST("/v1/mobile/register-device")
     suspend fun registerDeviceForNotification(@Header(AUTH) apiKey: String, @Body body: RequestBody): Response<Unit>
 }
