@@ -12,20 +12,29 @@ import retrofit2.Response
 internal object ApiServiceImp {
     private val apiService = RetrofitClient.getClient().create(ApiService::class.java)
 
-    suspend fun requestNotification(email: String, apiKey: String): Response<Notification> {
-        return apiService.requestNotification(apiKey = apiKey, email = email)
+    suspend fun requestNotification(
+        email: String,
+        apiKey: String,
+        projectId: String
+    ): Response<Notification> {
+        return apiService.requestNotification(apiKey = apiKey, projectId = projectId, email = email)
     }
 
-    suspend fun getWidgetVisibility(email: String, apiKey: String): Response<WidgetVisibility> {
-        return apiService.getWidgetVisibility(apiKey = apiKey, email)
+    suspend fun getWidgetVisibility(
+        email: String,
+        apiKey: String,
+        projectId: String
+    ): Response<WidgetVisibility> {
+        return apiService.getWidgetVisibility(apiKey = apiKey, projectId = projectId, email = email)
     }
 
     suspend fun registerDeviceForNotification(
         registrationInfo: RegistrationInfo,
-        apiKey: String
+        apiKey: String,
+        projectId: String
     ): Response<Unit> {
         val body = Gson().toJson(registrationInfo).toRequestBody()
-        return apiService.registerDeviceForNotification(apiKey = apiKey, body = body)
+        return apiService.registerDeviceForNotification(apiKey = apiKey, projectId = projectId, body = body)
 
     }
 }

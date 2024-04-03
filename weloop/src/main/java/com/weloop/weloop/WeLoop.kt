@@ -135,7 +135,8 @@ class WeLoop(
         scope.launch(Dispatchers.Main) {
             val response = ApiServiceImp.getWidgetVisibility(
                 email = email,
-                apiKey = mApiKey
+                apiKey = mApiKey,
+                projectId = mProjectId
             )
 
             if (response.isSuccessful) {
@@ -170,7 +171,8 @@ class WeLoop(
                     language = language,
                     pushyId = deviceToken
                 ),
-                apiKey = mApiKey
+                apiKey = mApiKey,
+                projectId = mProjectId
             )
             if (!response.isSuccessful) {
                 Timber.e("failed to register device for notification")
@@ -411,7 +413,7 @@ class WeLoop(
     fun requestNotification(email: String) {
         if (::mNotificationListener.isInitialized) {
             scope.launch {
-                val result = ApiServiceImp.requestNotification(email, mApiKey)
+                val result = ApiServiceImp.requestNotification(email, mApiKey, mProjectId)
 
                 if (result.isSuccessful) {
                     result.body()?.let {
