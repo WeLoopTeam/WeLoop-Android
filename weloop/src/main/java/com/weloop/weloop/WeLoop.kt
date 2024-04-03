@@ -289,10 +289,7 @@ class WeLoop(
             override fun getCapture() {
                 if (screenshot.isNotEmpty()) {
                     mWebView.post {
-                        mWebView.loadUrl(
-                            "javascript:getCapture('data:im      90" +
-                                    "; age/jpg;base64, ${screenshot}')"
-                        )
+                        mWebView.loadUrl("javascript:getCapture({ value: 'data:image/png;base64, ${screenshot}'})")
                         screenShotAsked = false
                     }
                 } else {
@@ -363,7 +360,7 @@ class WeLoop(
                 screenshot = result!!
                 if (screenShotAsked) {
                     mWebView.post {
-                        mWebView.loadUrl("javascript:getCapture('data:image/jpg;base64, ${screenshot}')")
+                        mWebView.loadUrl("javascript:getCapture({ value: 'data:image/png;base64, ${screenshot}'})")
                         screenShotAsked = false
                     }
                 }

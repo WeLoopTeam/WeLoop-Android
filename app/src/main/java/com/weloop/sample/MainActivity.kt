@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var weLoop: WeLoop
     var uploadMessage: ValueCallback<Array<Uri>>? = null
     private var email = "charles.tatibouet@gmail.com"
-    private var projectId = "117c2085-d555-4b7e-b39e-3663afffd924"
+    private var projectId = "19845cdd-2bfe-4287-9c30-b4d67999c598"
     private var apiKey = "1234"
 
     private lateinit var viewBinding: ActivityMainBinding
@@ -71,7 +71,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         weLoop.initialize(
-            email = "test@email.com",
+            email = email,
             window = window,
             weloopLocation = MainActivity::class.java.name,
             sideWidget = viewBinding.sideWidget,
@@ -79,13 +79,6 @@ class MainActivity : AppCompatActivity() {
         )
         weLoop.registerPushNotification(this, "first", " last", email, "language")
         weLoop.authenticateUser(User(id = "4", email = email, firstName = "John", lastName = "Doe"))
-        weLoop.addNotificationListener(object : WeLoop.NotificationListener {
-            override fun getNotification(number: Int) {
-                //doSomeStuff
-                Log.e("NOTIF:", "$number")
-                Toast.makeText(this@MainActivity, "NOTIF: $number", Toast.LENGTH_SHORT).show()
-            }
-        })
         viewBinding.buttonStartNotifLoop.setOnClickListener {
             weLoop.startRequestingNotificationsEveryTwoMinutes(email)
         }
