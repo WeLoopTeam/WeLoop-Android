@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
     private var retrofit: Retrofit? = null
-    private const val BASE_URL = "https://api.weloop.io"
+    private const val BASE_URL = "https://api.weloop.dev"
 
     fun getClient(): Retrofit {
         if (retrofit == null) {

@@ -17,10 +17,10 @@ interface ApiService {
         private const val AUTH = "Authorization"
     }
 
-    @GET("/widgetnotifications/count")
+    @GET("/v1/mobile/notification-count")
     suspend fun requestNotification(@Header(AUTH) apiKey: String, @Query("email") email: String): Response<Notification>
 
-    @GET("/getWidgetVisibility")
+    @GET("/v1/mobile/widget-visibility")
     suspend fun getWidgetVisibility(@Header(AUTH) apiKey: String, @Query("email") email: String): Response<WidgetVisibility>
 
     @POST("/registerDeviceForNotification")
