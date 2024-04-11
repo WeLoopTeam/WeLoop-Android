@@ -18,11 +18,6 @@ class WebAppInterface {
     }
 
     @JavascriptInterface
-    fun getCurrentUser(){
-       webAppListener.getCurrentUser()
-    }
-
-    @JavascriptInterface
     fun getCapture(){
         webAppListener.getCapture()
     }
@@ -33,21 +28,14 @@ class WebAppInterface {
     }
 
     @JavascriptInterface
-    fun IsLoaded(){
-        webAppListener.loadingFinished()
-    }
-
-    @JavascriptInterface
     fun getDeviceInfo(){
         webAppListener.getDeviceInfo()
     }
 
     interface WebAppListener{
         fun closePanel()
-        fun getCurrentUser()
         fun getCapture()
         fun setNotificationCount(number: Int)
-        fun loadingFinished()
         fun getDeviceInfo()
     }
 

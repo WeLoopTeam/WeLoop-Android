@@ -16,7 +16,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.weloop.sample.databinding.ActivityMainBinding;
 import com.weloop.weloop.SideWidget;
 import com.weloop.weloop.WeLoop;
-import com.weloop.weloop.model.User;
 
 import timber.log.Timber;
 
@@ -68,7 +67,6 @@ class MainActivityJava extends AppCompatActivity {
                 null,
                 sideWidget,
                 webView);
-        weLoop.authenticateUser(new User("4", "toto@email.fr", "John", "Doe"));
         MainActivityJava.class.getName();
         weLoop.addNotificationListener(new WeLoop.NotificationListener() {
             @Override

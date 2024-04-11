@@ -7,7 +7,6 @@ import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.webkit.ConsoleMessage
 import android.webkit.ValueCallback
@@ -17,7 +16,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.weloop.sample.databinding.ActivityMainBinding
 import com.weloop.weloop.WeLoop
-import com.weloop.weloop.model.User
 import timber.log.Timber
 
 private const val PICKFILE_REQUEST_CODE = 100
@@ -78,7 +76,6 @@ class MainActivity : AppCompatActivity() {
             webView = viewBinding.webview
         )
         weLoop.registerPushNotification(this, "first", " last", email, "language")
-        weLoop.authenticateUser(User(id = "4", email = email, firstName = "John", lastName = "Doe"))
         viewBinding.buttonStartNotifLoop.setOnClickListener {
             weLoop.startRequestingNotificationsEveryTwoMinutes(email)
         }

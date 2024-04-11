@@ -15,7 +15,6 @@ import android.media.RingtoneManager
 import android.os.Build
 import android.util.Base64
 import android.util.DisplayMetrics
-import android.util.Patterns
 import android.view.View
 import android.view.Window
 import android.webkit.WebResourceRequest
@@ -25,14 +24,11 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import cn.pedant.SweetAlert.SweetAlertDialog
 import com.google.gson.Gson
 import com.weloop.weloop.model.DeviceInfo
 import com.weloop.weloop.model.NotificationListenerNotInitializedException
 import com.weloop.weloop.model.RegistrationInfo
-import com.weloop.weloop.model.User
 import com.weloop.weloop.network.ApiServiceImp
-import com.weloop.weloop.utils.AES256Cryptor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -48,20 +44,6 @@ import java.io.ByteArrayOutputStream
 
 class MyWebViewClient : WebViewClient() {
 
-//    override fun onReceivedSslError(view: WebView?, handler: SslErrorHandler?, error: SslError?) {
-//        // Example: Proceed with SSL error
-//        view?.url?.let {
-//            if (
-//                it.contains("https://front.weloop.dev", ignoreCase = true)
-//                || it.contains("https://auth.weloop.dev", ignoreCase = true)
-//
-//                ) {
-//                handler?.proceed()
-//            }
-//
-//        }
-//    }
-
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
         Timber.e("url: ${view?.url}")
         return false
@@ -75,12 +57,9 @@ class WeLoop(
 ) {
     private var mSideWidget: SideWidget? = null
     private var webViewInterface = WebAppInterface()
-    private lateinit var mToken: String
     private lateinit var mWindow: Window
     private var screenshot: String = ""
     private var screenShotAsked = false
-    private lateinit var dialog: SweetAlertDialog
-    private var shouldShowDialog = false
     private lateinit var mNotificationListener: NotificationListener
     private var deviceInfo = DeviceInfo()
     private var isLoaded = false
@@ -93,6 +72,7 @@ class WeLoop(
     private val pushyBroadcastReceiver = PushReceiver()
     private var notificationUrl: String? = null
     private var shouldSideWidgetBeDisplayed = false
+    private lateinit var email: String
 
     fun initialize(
         email: String,
@@ -109,7 +89,8 @@ class WeLoop(
         mWebView.settings.javaScriptCanOpenWindowsAutomatically = true
         mWebView.settings.javaScriptEnabled = true
         mWebView.webViewClient = MyWebViewClient()
-        mWebView.settings.userAgentString = "Mozilla/5.0 (Android 14; Mobile; rv:123.0) Gecko/123.0 Firefox/123.0"
+        mWebView.settings.userAgentString =
+            "Mozilla/5.0 (Android 14; Mobile; rv:123.0) Gecko/123.0 Firefox/123.0"
         val displayMetrics = DisplayMetrics()
         window.windowManager.defaultDisplay.getMetrics(displayMetrics)
         val height: Int = displayMetrics.heightPixels
@@ -161,6 +142,7 @@ class WeLoop(
         email: String,
         language: String
     ) {
+        this.email = email
         scope.launch(SupervisorJob()) {
             val deviceToken = Pushy.register(mContext)
             val response = ApiServiceImp.registerDeviceForNotification(
@@ -278,6 +260,9 @@ class WeLoop(
     private fun initWebAppListener() {
         webViewInterface.addListener(object : WebAppInterface.WebAppListener {
             override fun closePanel() {
+                if (::email.isInitialized) {
+                    requestNotification(this@WeLoop.email)
+                }
                 mWebView.post {
                     mWebView.visibility = View.GONE
                     if (shouldSideWidgetBeDisplayed) {
@@ -297,28 +282,10 @@ class WeLoop(
                 }
             }
 
-            override fun getCurrentUser() {
-                if (this@WeLoop::mToken.isInitialized) {
-                    mWebView.post { mWebView.loadUrl("javascript:GetCurrentUser({ appGuid: '$mProjectId', token: '$mToken'})") }
-                } else {
-                    mWebView.post { mWebView.loadUrl("javascript:GetCurrentUser({ appGuid: '$mProjectId'})") }
-                }
-            }
-
             override fun setNotificationCount(number: Int) {
                 mSideWidget?.showNotificationDot(number > 0)
                 if (::mNotificationListener.isInitialized) {
                     mNotificationListener.getNotification(number)
-                }
-            }
-
-            override fun loadingFinished() {
-                isLoaded = true
-                shouldShowDialog = false
-                if (::dialog.isInitialized) {
-                    if (dialog.isShowing) {
-                        dialog.dismiss()
-                    }
                 }
             }
 
@@ -331,19 +298,12 @@ class WeLoop(
 
     fun invoke() {
         if (!isLoaded) {
-            shouldShowDialog = true
             loadHome()
             isLoaded = true
         }
         mSideWidget?.visibility = View.GONE
         takeScreenshot()
         mWebView.visibility = View.VISIBLE
-        // TODO uncomment
-//        if (shouldShowDialog) {
-//            dialog = SweetAlertDialog(mContext, SweetAlertDialog.PROGRESS_TYPE)
-//            dialog.setCancelable(true)
-//            dialog.show()
-//        }
     }
 
     private fun takeScreenshot() {
@@ -376,15 +336,6 @@ class WeLoop(
         }
     }
 
-    fun authenticateUser(user: User) {
-        if (Patterns.EMAIL_ADDRESS.matcher(user.email).matches()) {
-            val str = user.email + "|" + user.firstName + "|" + user.lastName + "|" + user.id
-            mToken = AES256Cryptor.encrypt(str, mProjectId)!!
-        } else {
-            Toast.makeText(mContext, "email incorrect", Toast.LENGTH_LONG).show()
-        }
-    }
-
     fun addNotificationListener(notificationListener: NotificationListener) {
         mNotificationListener = notificationListener
     }
@@ -408,21 +359,23 @@ class WeLoop(
 
     @Throws
     fun requestNotification(email: String) {
-        if (::mNotificationListener.isInitialized) {
-            scope.launch {
-                val result = ApiServiceImp.requestNotification(email, mApiKey, mProjectId)
+        scope.launch {
+            val result = ApiServiceImp.requestNotification(email, mApiKey, mProjectId)
 
-                if (result.isSuccessful) {
-                    result.body()?.let {
+            if (result.isSuccessful) {
+                result.body()?.let {
+                    mSideWidget?.showNotificationDot(it.count > 0)
+
+                    if (::mNotificationListener.isInitialized) {
                         mNotificationListener.getNotification(it.count)
-                    }
-                } else {
-                    Timber.e("error occurred while requesting notification")
-                }
 
+                    } else
+                        throw NotificationListenerNotInitializedException()
+                }
+            } else {
+                Timber.e("error occurred while requesting notification")
             }
-        } else
-            throw NotificationListenerNotInitializedException()
+        }
     }
 
     fun backButtonHasBeenPressed() {

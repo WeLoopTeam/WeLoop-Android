@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="defaultColorWidget">#422fff</color>
-    <color name="defaultColorBadge">#FA3E3E</color>
+    <color name="defaultColorBadge">#4c83c3</color>
 </resources>
