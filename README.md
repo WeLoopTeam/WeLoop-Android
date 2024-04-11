@@ -190,7 +190,6 @@ public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
 ### Initialize and authentication
 
 Initialize: You must call the ```initialize``` method in order to pass several informations such as the essential webview.  
-Authentication user: You can provide the user identity in the code or let the user signin in. Simply provide the identity of the current user by calling `authenticateUser`.
 
 ```YourClass``` is the class where ```Weloop``` is initialized, it is a nullable
 ```webview``` is your ```Webview``` in your layout (not a ```WeLoop``` component)
@@ -200,12 +199,10 @@ Authentication user: You can provide the user identity in the code or let the us
 Kotlin:
 ```kotlin
 weloop.initialize(email, this.window, YourClass:class.java.name, sideWidget, webview)
-weloop.authenticateUser(User(id = "3", email = "toto@gmail.com", firstName = "tata", lastName = "titi"))
 ```
 Java:
 ```java
 weloop.initialize(email, this.getWindow(), MainActivityJava.class.getName(), sideWidget, webview);
-weloop.authenticateUser(User("3","toto@gmail.com","tata","titi"));
 ```
 
 ###
