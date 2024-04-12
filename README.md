@@ -355,6 +355,3 @@ public void onBackPressed() {
 }
 
 ```
-# License
-
-WeLoop is available under the MIT license. See the LICENSE file for more info.
