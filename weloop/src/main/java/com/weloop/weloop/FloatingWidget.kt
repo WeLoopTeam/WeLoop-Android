@@ -12,7 +12,6 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Parcelable
 import android.util.AttributeSet
 import android.util.Property
-import android.view.View
 import android.view.animation.OvershootInterpolator
 import androidx.annotation.IntRange
 import androidx.core.graphics.ColorUtils
@@ -115,7 +114,7 @@ class FloatingWidget @JvmOverloads constructor(
         styledAttributes.recycle()
 
         updateCountText()
-        this.setImageDrawable(context.getDrawable(R.drawable.ic_logo_white))
+        this.setImageDrawable(context.getDrawable(R.drawable.ic_shape_fab_white))
     }
 
     private fun updateCountText() {

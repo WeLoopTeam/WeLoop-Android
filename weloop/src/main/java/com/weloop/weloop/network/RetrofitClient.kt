@@ -6,13 +6,12 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import java.util.concurrent.TimeUnit
 
 
 object RetrofitClient {
     private var retrofit: Retrofit? = null
-    private const val BASE_URL = "https://api.weloop.io"
+    private const val BASE_URL = "https://api.weloop.ai"
 
     fun getClient(): Retrofit {
         if (retrofit == null) {
@@ -20,14 +19,12 @@ object RetrofitClient {
                 Retrofit.Builder()
                     .baseUrl(BASE_URL)
                     .addConverterFactory(GsonConverterFactory.create())
-                    .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                     .client(getOkHttpClientDebug())
                     .build()
             } else {
                 Retrofit.Builder()
                     .baseUrl(BASE_URL)
                     .addConverterFactory(GsonConverterFactory.create())
-                    .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                     .client(getOkHttpClientRelease())
                     .build()
             }
