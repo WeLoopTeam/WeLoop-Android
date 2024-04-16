@@ -31,7 +31,7 @@ allprojects {
 
 Add the dependency in your build.gradle (app level)
 ```gradle
-implementation 'io.github.WeLoopTeam:weloop:2.1.0'
+implementation 'io.github.WeLoopTeam:weloop:2.1.2'
 ```
 
 ## Updating the manifest
