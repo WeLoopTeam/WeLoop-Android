@@ -10,7 +10,7 @@ repositories {
     maven { url "https://jitpack.io" }
 }
 
-String mVersionName = "2.1.2"
+String mVersionName = "2.1.3"
 
 android {
     defaultConfig {
