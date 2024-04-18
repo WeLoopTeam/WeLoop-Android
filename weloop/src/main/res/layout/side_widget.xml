@@ -12,4 +12,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
+    <ImageView
+        android:visibility="gone"
+        android:src="@drawable/red_dot"
+        android:id="@+id/notification_dot"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
 </FrameLayout>

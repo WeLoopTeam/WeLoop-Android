@@ -10,6 +10,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
 import android.media.RingtoneManager
 import android.os.Build
@@ -126,8 +127,7 @@ class WeLoop(
                     triggerWidgetVisibility()
                 }
             } else {
-                // TODO delete
-                shouldSideWidgetBeDisplayed = true
+                shouldSideWidgetBeDisplayed = true // TODO to comment/uncomment
                 triggerWidgetVisibility()
                 Timber.e("error when getting widget visibility")
             }
@@ -308,11 +308,8 @@ class WeLoop(
 
     private fun takeScreenshot() {
         try {
-            // create bitmap screen capture
-            val v1 = mWindow.decorView.rootView
-            v1.setDrawingCacheEnabled(true)
+            val bitmap = getBitmapFromView(mWindow.decorView.rootView)
             scope.launch {
-                val bitmap = Bitmap.createBitmap(v1.getDrawingCache())
                 val byteArrayOutputStream = ByteArrayOutputStream()
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
                 val byteArray = byteArrayOutputStream.toByteArray()
@@ -328,6 +325,15 @@ class WeLoop(
         } catch (e: Throwable) {
             e.printStackTrace()
         }
+    }
+
+    private fun getBitmapFromView(view: View): Bitmap {
+        val bitmap = Bitmap.createBitmap(
+            view.width, view.height, Bitmap.Config.ARGB_8888
+        )
+        val canvas = Canvas(bitmap)
+        view.draw(canvas)
+        return bitmap
     }
 
     private fun loadHome() {
