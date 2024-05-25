@@ -90,8 +90,6 @@ class MainActivity : AppCompatActivity() {
         viewBinding.buttonNotif.setOnClickListener {
             weLoop.requestNotification(email)
         }
-
-
     }
 
     override fun applyOverrideConfiguration(overrideConfiguration: Configuration) {
