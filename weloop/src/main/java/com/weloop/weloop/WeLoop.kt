@@ -30,13 +30,16 @@ import com.weloop.weloop.model.DeviceInfo
 import com.weloop.weloop.model.NotificationListenerNotInitializedException
 import com.weloop.weloop.model.RegistrationInfo
 import com.weloop.weloop.network.ApiServiceImp
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.pushy.sdk.Pushy
+import me.pushy.sdk.util.exceptions.PushyNetworkException
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
 
@@ -114,22 +117,25 @@ class WeLoop(
         mWindow = window
         mWebView.addJavascriptInterface(webViewInterface, "Android")
 
-        scope.launch(Dispatchers.Main) {
+        scope.launch(SupervisorJob() + Dispatchers.IO) {
             val response = ApiServiceImp.getWidgetVisibility(
                 email = email,
                 apiKey = mApiKey,
                 projectId = mProjectId
             )
-
             if (response.isSuccessful) {
                 response.body()?.let {
                     shouldSideWidgetBeDisplayed = it.fab
-                    triggerWidgetVisibility()
+                    withContext(Dispatchers.Main) {
+                        triggerWidgetVisibility()
+                    }
                 }
             } else {
-                shouldSideWidgetBeDisplayed = true // TODO to comment/uncomment
-                triggerWidgetVisibility()
                 Timber.e("error when getting widget visibility")
+                // shouldSideWidgetBeDisplayed = true // TODO to comment/uncomment
+                withContext(Dispatchers.Main) {
+                    triggerWidgetVisibility()
+                }
             }
         }
     }
@@ -143,48 +149,63 @@ class WeLoop(
         language: String
     ) {
         this.email = email
-        scope.launch(SupervisorJob()) {
-            val deviceToken = Pushy.register(mContext)
-            val response = ApiServiceImp.registerDeviceForNotification(
-                registrationInfo = RegistrationInfo(
-                    firstName = firstName,
-                    lastName = lastName,
-                    email = email,
-                    language = language,
-                    pushyId = deviceToken
-                ),
-                apiKey = mApiKey,
-                projectId = mProjectId
-            )
-            if (!response.isSuccessful) {
-                Timber.e("failed to register device for notification")
-            }
-            mContext.registerReceiver(pushyBroadcastReceiver, IntentFilter())
+        scope.launch(handler) {
+            try {
+                val deviceToken = Pushy.register(mContext)
+                val response = ApiServiceImp.registerDeviceForNotification(
+                    registrationInfo = RegistrationInfo(
+                        firstName = firstName,
+                        lastName = lastName,
+                        email = email,
+                        language = language,
+                        pushyId = deviceToken
+                    ),
+                    apiKey = mApiKey,
+                    projectId = mProjectId
+                )
+                if (!response.isSuccessful) {
+                    Timber.e("failed to register device for notification")
+                }
+                mContext.registerReceiver(pushyBroadcastReceiver, IntentFilter())
 
-            val filter = IntentFilter()
-            filter.addAction(INTENT_FILTER_PUSHY_RECEIVER_TO_WELOOP)
+                val filter = IntentFilter()
+                filter.addAction(INTENT_FILTER_PUSHY_RECEIVER_TO_WELOOP)
 
-            payloadReceiver = object : BroadcastReceiver() {
-                override fun onReceive(context: Context, intent: Intent) {
-                    intent.getStringExtra(NOTIFICATION_TITLE)?.let { title ->
-                        intent.getStringExtra(NOTIFICATION_MESSAGE)?.let { message ->
-                            notificationUrl = intent.getStringExtra(NOTIFICATION_URL)
-                            displayNotification(
-                                notificationTitle = title,
-                                notificationMessage = message,
-                                activity
-                            )
+                payloadReceiver = object : BroadcastReceiver() {
+                    override fun onReceive(context: Context, intent: Intent) {
+                        intent.getStringExtra(NOTIFICATION_TITLE)?.let { title ->
+                            intent.getStringExtra(NOTIFICATION_MESSAGE)?.let { message ->
+                                notificationUrl = intent.getStringExtra(NOTIFICATION_URL)
+                                displayNotification(
+                                    notificationTitle = title,
+                                    notificationMessage = message,
+                                    activity
+                                )
+                            }
                         }
                     }
                 }
-            }
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                mContext.registerReceiver(payloadReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-            } else {
-                mContext.registerReceiver(payloadReceiver, filter)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    mContext.registerReceiver(
+                        payloadReceiver,
+                        filter,
+                        Context.RECEIVER_NOT_EXPORTED
+                    )
+                } else {
+                    mContext.registerReceiver(payloadReceiver, filter)
+                }
+            } catch (e: PushyNetworkException) {
+                val message = "Failed to register Pushy Notifications, Pushy is unreachable"
+                Timber.e(message)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(mContext, message, Toast.LENGTH_SHORT).show()
+                }
             }
         }
+    }
+
+    val handler = CoroutineExceptionHandler { _, exception ->
     }
 
     fun unregisterPushNotification() {
