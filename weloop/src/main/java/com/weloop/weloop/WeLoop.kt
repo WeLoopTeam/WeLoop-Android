@@ -26,6 +26,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import com.weloop.weloop.model.DeviceInfo
 import com.weloop.weloop.model.NotificationListenerNotInitializedException
 import com.weloop.weloop.model.RegistrationInfo
@@ -118,24 +119,28 @@ class WeLoop(
         mWebView.addJavascriptInterface(webViewInterface, "Android")
 
         scope.launch(SupervisorJob() + Dispatchers.IO) {
-            val response = ApiServiceImp.getWidgetVisibility(
-                email = email,
-                apiKey = mApiKey,
-                projectId = mProjectId
-            )
-            if (response.isSuccessful) {
-                response.body()?.let {
-                    shouldSideWidgetBeDisplayed = it.fab
+            try {
+                val response = ApiServiceImp.getWidgetVisibility(
+                    email = email,
+                    apiKey = mApiKey,
+                    projectId = mProjectId
+                )
+                if (response.isSuccessful) {
+                    response.body()?.let {
+                        shouldSideWidgetBeDisplayed = it.fab
+                        withContext(Dispatchers.Main) {
+                            triggerWidgetVisibility()
+                        }
+                    }
+                } else {
+                    Timber.e("error when getting widget visibility")
+                    // shouldSideWidgetBeDisplayed = true // TODO to comment/uncomment
                     withContext(Dispatchers.Main) {
                         triggerWidgetVisibility()
                     }
                 }
-            } else {
-                Timber.e("error when getting widget visibility")
-                // shouldSideWidgetBeDisplayed = true // TODO to comment/uncomment
-                withContext(Dispatchers.Main) {
-                    triggerWidgetVisibility()
-                }
+            } catch (e: JsonSyntaxException) {
+                Timber.e(e.message)
             }
         }
     }
@@ -201,6 +206,8 @@ class WeLoop(
                 withContext(Dispatchers.Main) {
                     Toast.makeText(mContext, message, Toast.LENGTH_SHORT).show()
                 }
+            } catch (e: JsonSyntaxException) {
+                Timber.e(e.message)
             }
         }
     }
@@ -387,20 +394,24 @@ class WeLoop(
     @Throws
     fun requestNotification(email: String) {
         scope.launch {
-            val result = ApiServiceImp.requestNotification(email, mApiKey, mProjectId)
+            try {
+                val result = ApiServiceImp.requestNotification(email, mApiKey, mProjectId)
 
-            if (result.isSuccessful) {
-                result.body()?.let {
-                    mSideWidget?.showNotificationDot(it.count > 0)
+                if (result.isSuccessful) {
+                    result.body()?.let {
+                        mSideWidget?.showNotificationDot(it.count > 0)
 
-                    if (::mNotificationListener.isInitialized) {
-                        mNotificationListener.getNotification(it.count)
+                        if (::mNotificationListener.isInitialized) {
+                            mNotificationListener.getNotification(it.count)
 
-                    } else
-                        throw NotificationListenerNotInitializedException()
+                        } else
+                            throw NotificationListenerNotInitializedException()
+                    }
+                } else {
+                    Timber.e("error occurred while requesting notification")
                 }
-            } else {
-                Timber.e("error occurred while requesting notification")
+            } catch (e: JsonSyntaxException) {
+                Timber.e(e.message)
             }
         }
     }
